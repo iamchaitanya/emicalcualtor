@@ -41,4 +41,21 @@ export interface InvestmentData {
   totalValue: number;
 }
 
+export interface TaxSlab {
+  label: string;
+  rate: string;
+  taxableAmount: number;
+  amount: number;
+}
+
+export interface TaxRegimeResult {
+  taxableIncome: number;
+  tax: number;
+  cess: number;
+  baseTax: number;
+  totalDeductions?: number;
+  slabs: TaxSlab[];
+  rebate87A: number;
+}
+
 export type AppView = 'emi'; // Simplified focus

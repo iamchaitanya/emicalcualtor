@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { 
-  calculateSIP, 
+  calculateSIP,
+  calculateLumpSum,
   formatCurrency, 
   getCurrencySymbol, 
   detectCurrencyFromLocale 
@@ -12,54 +12,50 @@ import Layout from './components/Layout';
 
 const COLORS = ['#3b82f6', '#10b981'];
 
-const SIPCalculator: React.FC = () => {
-  const [searchParams] = useSearchParams();
-
-  const [currency, setCurrency] = useState<string>('USD');
-  const [investment, setInvestment] = useState<number>(500);
-  const [rate, setRate] = useState<number>(12);
-  const [years, setYears] = useState<number>(10);
+const MutualFundCalculator: React.FC = () => {
+  const [currency, setCurrency] = useState<string>(detectCurrencyFromLocale());
+  const [mode, setMode] = useState<'sip' | 'lumpsum'>('sip');
   
-  // Advanced Options State
+  // Basic State
+  const [amount, setAmount] = useState<number>(5000);
+  const [rate, setRate] = useState<number>(12);
+  const [years, setYears] = useState<number>(5);
+
+  // Advanced State
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [stepUpRate, setStepUpRate] = useState<number>(0);
   const [adjustInflation, setAdjustInflation] = useState<boolean>(false);
   const [inflationRate, setInflationRate] = useState<number>(6);
 
-  useEffect(() => {
-    if (searchParams.has('curr')) setCurrency(searchParams.get('curr')!);
-    if (searchParams.has('inv')) setInvestment(Number(searchParams.get('inv')));
-    if (searchParams.has('rate')) setRate(Number(searchParams.get('rate')));
-    if (searchParams.has('yrs')) setYears(Number(searchParams.get('yrs')));
-    
-    // Advanced Params
-    if (searchParams.has('step')) setStepUpRate(Number(searchParams.get('step')));
-    if (searchParams.has('inf')) {
-      setAdjustInflation(true);
-      setInflationRate(Number(searchParams.get('inf')));
-    }
-    
-    if (searchParams.has('step') || searchParams.has('inf')) setShowAdvanced(true);
-
-    if (!searchParams.has('curr')) {
-        setCurrency(detectCurrencyFromLocale());
-    }
-  }, [searchParams]);
-
   const symbol = useMemo(() => getCurrencySymbol(currency), [currency]);
 
-  const result = useMemo(() => {
-    // Calculate standard SIP with Step-up
-    const rawResult = calculateSIP(investment, rate, years, stepUpRate);
+  // Handle default amounts when switching modes to be user-friendly
+  const handleModeChange = (newMode: 'sip' | 'lumpsum') => {
+    setMode(newMode);
+    if (newMode === 'sip') {
+      setAmount(5000); // Default monthly
+    } else {
+      setAmount(50000); // Default lumpsum
+    }
+  };
 
-    // If inflation adjustment is active, discount the Future Value to Present Value
+  const result = useMemo(() => {
+    let rawResult;
+    
+    if (mode === 'sip') {
+      // calculateSIP supports stepUpRate as 4th argument
+      rawResult = calculateSIP(amount, rate, years, stepUpRate);
+    } else {
+      // LumpSum doesn't support stepUp (it's one time)
+      rawResult = calculateLumpSum(amount, rate, years);
+    }
+
+    // Apply Inflation Adjustment
     if (adjustInflation) {
       // Formula for Real Value: FV / (1 + inflation)^years
       const inflationFactor = Math.pow(1 + inflationRate / 100, years);
       const realTotalValue = rawResult.totalValue / inflationFactor;
       
-      // We don't discount the invested amount (nominal cash outflow), but we compare the 
-      // Real Final Value against the Nominal Invested Amount to show "Real Gains"
       return {
         investedAmount: rawResult.investedAmount,
         estReturns: realTotalValue - rawResult.investedAmount,
@@ -69,9 +65,9 @@ const SIPCalculator: React.FC = () => {
     }
 
     return { ...rawResult, isInflationAdjusted: false };
-  }, [investment, rate, years, stepUpRate, adjustInflation, inflationRate]);
+  }, [mode, amount, rate, years, stepUpRate, adjustInflation, inflationRate]);
 
-  // Handle case where real returns might be negative (if inflation > returns)
+  // Handle negative returns display for charts (if inflation > returns)
   const chartData = useMemo(() => {
     const returns = Math.max(0, result.estReturns);
     return [
@@ -85,19 +81,11 @@ const SIPCalculator: React.FC = () => {
     const radius = outerRadius * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    const textColor = 'white';
-
-    if (percent < 0.05) return null; // Hide label if slice is too small
+    
+    if (percent < 0.05) return null;
 
     return (
-      <text 
-        x={x} 
-        y={y} 
-        fill={textColor} 
-        textAnchor="middle" 
-        dominantBaseline="central" 
-        style={{ fontSize: '13px', fontWeight: 800, pointerEvents: 'none', textShadow: '0px 0px 2px rgba(0,0,0,0.5)' }}
-      >
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" style={{ fontSize: '12px', fontWeight: 800, pointerEvents: 'none', textShadow: '0 0 2px rgba(0,0,0,0.5)' }}>
         {`${(percent * 100).toFixed(0)}%`}
       </text>
     );
@@ -105,10 +93,10 @@ const SIPCalculator: React.FC = () => {
 
   return (
     <Layout 
-      title="SIP" 
-      titleHighlight="Calculator" 
-      icon="fas fa-chart-line" 
-      iconColor="#10b981"
+      title="Mutual Fund" 
+      titleHighlight="Returns" 
+      icon="fas fa-chart-pie" 
+      iconColor="#8b5cf6"
       currency={currency}
       onCurrencyChange={setCurrency}
     >
@@ -118,13 +106,32 @@ const SIPCalculator: React.FC = () => {
               Investment Details
             </h2>
             
+            <div style={{ marginBottom: '32px' }}>
+                <div className="toggle-group" style={{ width: '100%', display: 'flex' }}>
+                    <button 
+                        className={`toggle-btn ${mode === 'sip' ? 'active' : ''}`} 
+                        onClick={() => handleModeChange('sip')}
+                        style={{ flex: 1, padding: '12px' }}
+                    >
+                        SIP
+                    </button>
+                    <button 
+                        className={`toggle-btn ${mode === 'lumpsum' ? 'active' : ''}`} 
+                        onClick={() => handleModeChange('lumpsum')}
+                        style={{ flex: 1, padding: '12px' }}
+                    >
+                        Lumpsum
+                    </button>
+                </div>
+            </div>
+
             <SliderInput 
-              label="Monthly Investment" 
-              value={investment} 
+              label={mode === 'sip' ? "Monthly Investment" : "Total Investment"} 
+              value={amount} 
               min={500} 
-              max={1000000} 
+              max={mode === 'sip' ? 100000 : 10000000} 
               step={500} 
-              onChange={setInvestment} 
+              onChange={setAmount} 
               prefix={symbol}
             />
 
@@ -157,7 +164,7 @@ const SIPCalculator: React.FC = () => {
                    display: 'flex', 
                    alignItems: 'center', 
                    justifyContent: 'space-between', 
-                   background: showAdvanced ? '#ecfdf5' : '#f8fafc', 
+                   background: showAdvanced ? '#f5f3ff' : '#f8fafc', 
                    border: '1px solid #e2e8f0',
                    padding: '16px 20px',
                    borderRadius: showAdvanced ? '16px 16px 0 0' : '16px',
@@ -169,7 +176,7 @@ const SIPCalculator: React.FC = () => {
                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ 
                         width: '36px', height: '36px', borderRadius: '10px', 
-                        background: '#10b981', color: 'white', 
+                        background: '#8b5cf6', color: 'white', 
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '14px'
                     }}>
@@ -177,7 +184,9 @@ const SIPCalculator: React.FC = () => {
                     </div>
                     <div style={{ textAlign: 'left' }}>
                         <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', margin: 0 }}>Advanced Options</h3>
-                        <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0', fontWeight: 500 }}>Step-up SIP & Inflation</p>
+                        <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0', fontWeight: 500 }}>
+                            {mode === 'sip' ? 'Step-up & Inflation' : 'Inflation Adjustment'}
+                        </p>
                     </div>
                  </div>
                  
@@ -209,30 +218,32 @@ const SIPCalculator: React.FC = () => {
                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
                  }}>
                    
-                   {/* Step Up SIP */}
-                   <div style={{ marginBottom: '28px' }}>
-                       <SliderInput 
-                          label="Annual Step-up (Increase)" 
-                          value={stepUpRate} 
-                          min={0} 
-                          max={50} 
-                          step={1} 
-                          onChange={setStepUpRate} 
-                          suffix={<span className="unit-label">%</span>}
-                        />
-                        <p style={{ fontSize: '12px', color: '#64748b', marginTop: '-20px', marginBottom: '0' }}>
-                           Automatically increase your monthly investment by {stepUpRate}% every year.
-                        </p>
-                   </div>
+                   {/* Step Up - Only for SIP */}
+                   {mode === 'sip' && (
+                       <div style={{ marginBottom: '28px' }}>
+                           <SliderInput 
+                              label="Annual Step-up (Increase)" 
+                              value={stepUpRate} 
+                              min={0} 
+                              max={50} 
+                              step={1} 
+                              onChange={setStepUpRate} 
+                              suffix={<span className="unit-label">%</span>}
+                            />
+                            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '-20px', marginBottom: '0' }}>
+                               Increase monthly investment by {stepUpRate}% every year.
+                            </p>
+                       </div>
+                   )}
 
                    {/* Inflation Adjustment */}
-                   <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
+                   <div style={{ borderTop: mode === 'sip' ? '1px solid #e2e8f0' : 'none', paddingTop: mode === 'sip' ? '24px' : '0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                           <label style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>Adjust for Inflation</label>
                           <div 
                             onClick={() => setAdjustInflation(!adjustInflation)}
                             style={{
-                                width: '48px', height: '26px', background: adjustInflation ? '#10b981' : '#cbd5e1',
+                                width: '48px', height: '26px', background: adjustInflation ? '#8b5cf6' : '#cbd5e1',
                                 borderRadius: '13px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s'
                             }}
                           >
@@ -257,7 +268,7 @@ const SIPCalculator: React.FC = () => {
                       )}
                       {adjustInflation && (
                           <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '-20px', marginBottom: '0', fontWeight: 500 }}>
-                             Results will show "Present Value" (what the money is worth today).
+                             Results show "Present Value" (purchasing power today).
                           </p>
                       )}
                    </div>
@@ -266,12 +277,15 @@ const SIPCalculator: React.FC = () => {
                )}
             </div>
 
-            <div style={{ marginTop: '32px', background: '#eff6ff', padding: '20px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#1e40af', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fas fa-lightbulb"></i> Wealth Tip
+            <div style={{ marginTop: '32px', background: '#f5f3ff', padding: '20px', borderRadius: '12px', border: '1px solid #ddd6fe' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#5b21b6', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="fas fa-info-circle"></i> Info
               </h3>
-              <p style={{ fontSize: '13px', color: '#1e3a8a', margin: 0, lineHeight: '1.5' }}>
-                Increasing your SIP by just <strong>10% annually</strong> (Step-up SIP) can nearly double your wealth corpus over long tenures compared to a fixed SIP.
+              <p style={{ fontSize: '13px', color: '#4c1d95', margin: 0, lineHeight: '1.5' }}>
+                {mode === 'sip' 
+                    ? "SIP allows you to invest small amounts regularly. Use Step-up to increase your investment annually as your income grows."
+                    : "Lumpsum is a one-time investment. Adjusting for inflation helps you understand the real value of your corpus in the future."
+                }
               </p>
             </div>
           </div>
@@ -281,7 +295,7 @@ const SIPCalculator: React.FC = () => {
                 <div className="result-title">
                     {result.isInflationAdjusted ? 'Total Value (Inflation Adjusted)' : 'Total Value'}
                 </div>
-                <div className="result-amount" style={{ color: '#10b981' }}>{formatCurrency(result.totalValue, currency)}</div>
+                <div className="result-amount" style={{ color: '#8b5cf6' }}>{formatCurrency(result.totalValue, currency)}</div>
              </div>
 
              <div className="stats-grid">
@@ -314,12 +328,7 @@ const SIPCalculator: React.FC = () => {
                       {chartData.map((_, index) => <Cell key={index} fill={COLORS[index]} />)}
                     </Pie>
                     <Tooltip formatter={(val: number) => formatCurrency(val, currency)} />
-                    <Legend 
-                        verticalAlign="bottom" 
-                        height={36} 
-                        iconType="circle"
-                        formatter={(value, entry: any) => <span style={{ color: '#64748b', fontSize: '12px', fontWeight: 600 }}>{value}</span>}
-                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
                   </PieChart>
                 </ResponsiveContainer>
              </div>
@@ -329,4 +338,4 @@ const SIPCalculator: React.FC = () => {
   );
 };
 
-export default SIPCalculator;
+export default MutualFundCalculator;

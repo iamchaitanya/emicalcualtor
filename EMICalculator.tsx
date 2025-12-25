@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { 
   calculateEMI, 
@@ -8,23 +7,15 @@ import {
   getCurrencySymbol, 
   detectCurrencyFromLocale 
 } from './utils/calculations';
+import { downloadExcel, downloadPDF } from './utils/exportUtils';
 import SliderInput from './components/SliderInput';
 import AmortizationSchedule from './components/AmortizationSchedule';
+import Layout from './components/Layout';
 import { CustomPrepayment } from './types';
 
 const COLORS = ['#3b82f6', '#cbd5e1'];
 
-const SUPPORTED_CURRENCIES = [
-  { code: 'USD', name: 'USD ($)' },
-  { code: 'INR', name: 'INR (₹)' },
-  { code: 'EUR', name: 'EUR (€)' },
-  { code: 'GBP', name: 'GBP (£)' },
-  { code: 'JPY', name: 'JPY (¥)' },
-  { code: 'AED', name: 'AED (د.إ)' },
-];
-
 const EMICalculator: React.FC = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [currency, setCurrency] = useState<string>('USD');
@@ -93,7 +84,6 @@ const EMICalculator: React.FC = () => {
     const [startYear, startMonth] = startDate.split('-').map(Number);
     return Array.from({ length: totalMonths }, (_, i) => {
       const monthIndex = i + 1;
-      // Calculate date: startMonth is 1-based, Date constructor month is 0-based
       const date = new Date(startYear, (startMonth - 1) + i);
       const label = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       return { value: monthIndex, label: `${monthIndex}. ${label}` };
@@ -161,7 +151,6 @@ const EMICalculator: React.FC = () => {
     );
   };
 
-  // Export & Share Functions
   const generateShareLink = () => {
     const params = new URLSearchParams();
     params.set('curr', currency);
@@ -185,7 +174,6 @@ const EMICalculator: React.FC = () => {
        params.set('cp', btoa(JSON.stringify(customPayments)));
     }
 
-    // Updated for HashRouter
     const newUrl = `${window.location.origin}${window.location.pathname}#/emi-calculator?${params.toString()}`;
     
     navigator.clipboard.writeText(newUrl).then(() => {
@@ -194,100 +182,14 @@ const EMICalculator: React.FC = () => {
     });
   };
 
-  const downloadExcel = async () => {
-    try {
-      const XLSX = await import("xlsx");
-      const wb = XLSX.utils.book_new();
-      
-      const data = emiResult.amortization.map(row => {
-        const [y, m] = startDate.split('-').map(Number);
-        const date = new Date(y, (m - 1) + (row.month - 1));
-        return {
-          "Month No": row.month,
-          "Date": date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          "Principal Paid": row.principalPaid,
-          "Interest Paid": row.interestPaid,
-          "Total Payment": row.principalPaid + row.interestPaid,
-          "Balance": row.balance
-        };
-      });
-
-      const ws = XLSX.utils.json_to_sheet(data);
-      XLSX.utils.book_append_sheet(wb, ws, "Amortization Schedule");
-      XLSX.writeFile(wb, "SmartEMI_Schedule.xlsx");
-    } catch (error) {
-      console.error("Error downloading Excel:", error);
-      alert("Failed to load Excel module. Please try again.");
-    }
-  };
-
-  const downloadPDF = async () => {
-    try {
-      const { jsPDF } = await import("jspdf");
-      const autoTable = (await import("jspdf-autotable")).default;
-
-      const doc = new jsPDF();
-      
-      doc.setFontSize(20);
-      doc.text("Loan Amortization Schedule", 14, 22);
-      
-      doc.setFontSize(11);
-      doc.text(`Loan Amount: ${formatCurrency(amount, currency)}`, 14, 32);
-      doc.text(`Interest Rate: ${rate}%`, 14, 38);
-      doc.text(`Tenure: ${tenure} ${tenureType === 'yr' ? 'Years' : 'Months'}`, 14, 44);
-      
-      const headers = [["Month", "Date", "Principal", "Interest", "Total", "Balance"]];
-      const data = emiResult.amortization.map(row => {
-        const [y, m] = startDate.split('-').map(Number);
-        const date = new Date(y, (m - 1) + (row.month - 1));
-        return [
-          row.month,
-          date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          formatCurrency(row.principalPaid, currency),
-          formatCurrency(row.interestPaid, currency),
-          formatCurrency(row.principalPaid + row.interestPaid, currency),
-          formatCurrency(row.balance, currency)
-        ];
-      });
-
-      autoTable(doc, {
-        head: headers,
-        body: data,
-        startY: 50,
-        theme: 'grid',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [59, 130, 246] }
-      });
-
-      doc.save("SmartEMI_Schedule.pdf");
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-      alert("Failed to load PDF module. Please try again.");
-    }
-  };
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
-      {/* Header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', marginBottom: '40px' }}>
-        <div className="container" style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => navigate('/')}>
-            <div style={{ width: '32px', height: '32px', background: '#3b82f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '16px' }}>
-              <i className="fas fa-calculator"></i>
-            </div>
-            <span style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>EMI Calculator <span style={{color:'#3b82f6'}}>Pro</span></span>
-          </div>
-          <select 
-            value={currency} 
-            onChange={(e) => setCurrency(e.target.value)}
-            style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', fontWeight: 600, fontSize: '13px', color: '#334155', cursor: 'pointer', outline: 'none' }}
-          >
-            {SUPPORTED_CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className="container" style={{ flex: 1 }}>
+    <Layout 
+      title="EMI Calculator" 
+      icon="fas fa-calculator" 
+      iconColor="#3b82f6"
+      currency={currency}
+      onCurrencyChange={setCurrency}
+    >
         <div className="calc-wrapper">
           {/* Left Panel: Inputs */}
           <div className="calc-left">
@@ -428,7 +330,7 @@ const EMICalculator: React.FC = () => {
                       </div>
                     )}
 
-                   {/* 2. Prepayments (Moved up) */}
+                   {/* 2. Prepayments */}
                    <div style={{ marginBottom: '28px' }}>
                      <label style={{ display: 'block', fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px' }}>
                        Prepayments
@@ -479,7 +381,7 @@ const EMICalculator: React.FC = () => {
                             <span style={{ width: '30px' }}></span>
                           </div>
                           
-                          {customPayments.map((payment, idx) => (
+                          {customPayments.map((payment) => (
                              <div key={payment.id} style={{ display: 'flex', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
                                 <select 
                                   value={payment.month}
@@ -537,7 +439,7 @@ const EMICalculator: React.FC = () => {
                      )}
                    </div>
 
-                   {/* 3. Start Date (Moved down) */}
+                   {/* 3. Start Date */}
                    <div style={{ marginBottom: '28px', width: '100%' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                             <label style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', flex: '0 0 200px' }}>Start Month</label>
@@ -631,10 +533,9 @@ const EMICalculator: React.FC = () => {
            <AmortizationSchedule data={emiResult.amortization} currencyCode={currency} startDate={startDate} />
         </div>
 
-        {/* Download & Share Actions */}
         <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <button 
-            onClick={downloadExcel}
+            onClick={() => downloadExcel(emiResult.amortization)}
             style={{
               padding: '12px 24px',
               borderRadius: '12px',
@@ -648,14 +549,16 @@ const EMICalculator: React.FC = () => {
               gap: '8px',
               fontSize: '14px',
               boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)',
-              transition: 'transform 0.1s'
+              transition: 'transform 0.1s',
+              minWidth: '150px',
+              justifyContent: 'center'
             }}
           >
-            <i className="fas fa-file-excel"></i> Excel
+            <i className="fas fa-file-excel"></i> Download Excel
           </button>
-          
+
           <button 
-            onClick={downloadPDF}
+            onClick={() => downloadPDF(emiResult.amortization, amount, rate, totalMonths, currency)}
             style={{
               padding: '12px 24px',
               borderRadius: '12px',
@@ -669,10 +572,12 @@ const EMICalculator: React.FC = () => {
               gap: '8px',
               fontSize: '14px',
               boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)',
-              transition: 'transform 0.1s'
+              transition: 'transform 0.1s',
+              minWidth: '150px',
+              justifyContent: 'center'
             }}
           >
-            <i className="fas fa-file-pdf"></i> PDF
+            <i className="fas fa-file-pdf"></i> Download PDF
           </button>
 
           <button 
@@ -702,44 +607,7 @@ const EMICalculator: React.FC = () => {
             )}
           </button>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div style={{ marginTop: '60px', borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '40px 0' }}>
-        <div className="container">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '28px', height: '28px', background: '#3b82f6', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px' }}>
-                  <i className="fas fa-calculator"></i>
-                </div>
-                <span style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b' }}>Smart EMI Pro</span>
-            </div>
-
-            <p style={{ color: '#64748b', fontSize: '14px', textAlign: 'center', margin: 0, maxWidth: '500px', lineHeight: '1.6' }}>
-              Empowering your financial decisions with precise calculations and insights. Plan your loans, visualize payments, and save more.
-            </p>
-
-            <div style={{ display: 'flex', gap: '24px' }}>
-              <a href="#" style={{ color: '#94a3b8', fontSize: '20px', transition: 'color 0.2s' }}><i className="fab fa-twitter"></i></a>
-              <a href="#" style={{ color: '#94a3b8', fontSize: '20px', transition: 'color 0.2s' }}><i className="fab fa-github"></i></a>
-              <a href="#" style={{ color: '#94a3b8', fontSize: '20px', transition: 'color 0.2s' }}><i className="fab fa-linkedin"></i></a>
-            </div>
-
-            <div style={{ width: '100%', height: '1px', background: '#f1f5f9', margin: '10px 0' }}></div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '600px', flexWrap: 'wrap', gap: '20px', alignItems: 'center' }}>
-               <span style={{ fontSize: '13px', color: '#94a3b8' }}>© {new Date().getFullYear()} Smart EMI Pro. All rights reserved.</span>
-               <div style={{ display: 'flex', gap: '20px' }}>
-                 <a href="#" style={{ fontSize: '13px', color: '#64748b', textDecoration: 'none', fontWeight: 500 }}>Privacy Policy</a>
-                 <a href="#" style={{ fontSize: '13px', color: '#64748b', textDecoration: 'none', fontWeight: 500 }}>Terms of Service</a>
-               </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div>
+    </Layout>
   );
 };
 

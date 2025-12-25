@@ -1,77 +1,88 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const CalculatorCard: React.FC<{ 
   title: string; 
-  description: string; 
   icon: string; 
+  iconColor?: string; 
   path?: string;
   disabled?: boolean;
-}> = ({ title, description, icon, path, disabled }) => {
+}> = ({ title, icon, iconColor = '#3b82f6', path, disabled }) => {
   const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div 
       onClick={() => !disabled && path && navigate(path)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         background: 'white',
-        borderRadius: '20px',
-        padding: '32px',
-        border: '1px solid #e2e8f0',
+        borderRadius: '24px',
+        padding: '24px', // Slightly reduced padding for better fit in 5-col
+        border: '1px solid #f1f5f9',
         cursor: disabled ? 'default' : 'pointer',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        transition: 'all 0.3s ease',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: '16px',
+        alignItems: 'flex-start', 
+        textAlign: 'left',
+        gap: '20px',
         opacity: disabled ? 0.6 : 1,
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+        boxShadow: isHovered 
+            ? `0 15px 25px -5px ${iconColor}15, 0 10px 10px -5px ${iconColor}10` 
+            : '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02)',
+        transform: isHovered && !disabled ? 'translateY(-4px)' : 'translateY(0)',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        height: '100%',
+        minHeight: '180px' // Ensure uniform height look
       }}
-      className={!disabled ? "hover-card" : ""}
     >
+      {/* Decorative gradient blob in background */}
+      <div style={{
+          position: 'absolute',
+          top: '-20%',
+          right: '-20%',
+          width: '180px',
+          height: '180px',
+          background: iconColor,
+          opacity: isHovered ? 0.06 : 0.02,
+          borderRadius: '50%',
+          filter: 'blur(50px)',
+          transition: 'all 0.5s ease',
+          pointerEvents: 'none'
+      }} />
+
       <div style={{
         width: '56px',
         height: '56px',
         borderRadius: '16px',
-        background: disabled ? '#f1f5f9' : '#eff6ff',
-        color: disabled ? '#94a3b8' : '#3b82f6',
+        background: disabled ? '#f1f5f9' : `linear-gradient(135deg, ${iconColor}10 0%, ${iconColor}25 100%)`,
+        color: disabled ? '#94a3b8' : iconColor,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '24px'
+        fontSize: '24px',
+        transition: 'transform 0.3s ease',
+        transform: isHovered && !disabled ? 'scale(1.1) rotate(-5deg)' : 'scale(1) rotate(0deg)',
+        boxShadow: isHovered ? `0 10px 15px -3px ${iconColor}25` : 'none'
       }}>
         <i className={icon}></i>
       </div>
       
-      <div>
-        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>{title}</h3>
-        <p style={{ margin: 0, fontSize: '14px', color: '#64748b', lineHeight: '1.5' }}>{description}</p>
+      <div style={{ zIndex: 1 }}>
+        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#1e293b', letterSpacing: '-0.01em', lineHeight: '1.3' }}>{title}</h3>
       </div>
-
-      {!disabled && (
-        <div style={{ marginTop: 'auto', paddingTop: '16px', width: '100%' }}>
-           <span style={{ 
-             fontSize: '14px', 
-             fontWeight: 700, 
-             color: '#3b82f6', 
-             display: 'flex', 
-             alignItems: 'center', 
-             gap: '8px' 
-           }}>
-             Launch Tool <i className="fas fa-arrow-right"></i>
-           </span>
-        </div>
-      )}
 
       {disabled && (
         <div style={{ 
-          position: 'absolute', top: '16px', right: '16px', 
-          background: '#f1f5f9', padding: '4px 10px', borderRadius: '20px',
-          fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase'
+          position: 'absolute', top: '20px', right: '20px', 
+          background: '#f1f5f9', padding: '5px 10px', borderRadius: '20px',
+          fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase',
+          letterSpacing: '0.05em'
         }}>
-          Coming Soon
+          Soon
         </div>
       )}
     </div>
@@ -80,56 +91,168 @@ const CalculatorCard: React.FC<{
 
 const Home: React.FC = () => {
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '40px 24px' }}>
-      <style>{`
-        .hover-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '32px 0' }}>
+       {/* Inject CSS for responsive grid */}
+       <style>{`
+        .home-grid {
+          display: grid;
+          grid-template-columns: 1fr; /* Force 1 column on mobile */
+          gap: 16px;
+          margin: 0 auto;
+        }
+        @media (min-width: 600px) {
+          .home-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+          }
+        }
+        @media (min-width: 900px) {
+          .home-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+          }
+        }
+        @media (min-width: 1200px) {
+           .home-grid {
+            grid-template-columns: repeat(5, 1fr); /* 5 per row for desktop */
+            gap: 24px;
+          }
         }
       `}</style>
-      <div className="container">
-        <div style={{ textAlign: 'center', marginBottom: '60px', marginTop: '40px' }}>
-          <h1 style={{ fontSize: '36px', fontWeight: 800, color: '#1e293b', marginBottom: '16px', letterSpacing: '-0.03em' }}>
-            Financial Tools <span style={{ color: '#3b82f6' }}>Suite</span>
+
+      {/* Use a custom container width to accommodate 5 columns better */}
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 24px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px', marginTop: '10px' }}>
+          <div style={{ 
+              display: 'inline-block', 
+              padding: '8px 16px', 
+              background: '#eff6ff', 
+              borderRadius: '30px', 
+              color: '#3b82f6', 
+              fontSize: '12px', 
+              fontWeight: 700, 
+              marginBottom: '20px',
+              border: '1px solid #dbeafe',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase'
+          }}>
+             Finance Tools
+          </div>
+          <h1 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', marginBottom: '16px', letterSpacing: '-0.03em', lineHeight: '1.1' }}>
+            Smart Financial <br/><span style={{ 
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+            }}>Calculators</span>
           </h1>
-          <p style={{ fontSize: '16px', color: '#64748b', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
-            A collection of powerful calculators to help you plan your investments, loans, and taxes with precision.
+          <p style={{ fontSize: '16px', color: '#64748b', maxWidth: '500px', margin: '0 auto', lineHeight: '1.6', fontWeight: 500 }}>
+            Plan your investments, loans, and taxes with confidence.
           </p>
         </div>
 
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '32px',
-          maxWidth: '1000px',
-          margin: '0 auto'
-        }}>
+        <div className="home-grid">
           <CalculatorCard 
-            title="Smart EMI Pro" 
-            description="Advanced loan calculator with prepayments, moratorium analysis, and interactive amortization charts."
+            title="EMI Calculator" 
             icon="fas fa-calculator"
             path="/emi-calculator"
           />
 
           <CalculatorCard 
+            title="Income Tax" 
+            icon="fas fa-file-invoice-dollar" 
+            iconColor="#3b82f6"
+            path="/income-tax-calculator"
+          />
+          
+          <CalculatorCard 
+            title="Basic Calculator" 
+            icon="fas fa-calculator"
+            iconColor="#64748b"
+            path="/simple-calculator"
+          />
+
+          <CalculatorCard 
             title="SIP Calculator" 
-            description="Calculate the future value of your Systematic Investment Plans with projected returns."
-            icon="fas fa-chart-line"
+            icon="fas fa-chart-line" 
+            iconColor="#10b981"
             path="/sip-calculator"
           />
 
           <CalculatorCard 
-            title="GST Calculator" 
-            description="Instantly calculate GST inclusive and exclusive amounts with detailed tax breakdowns."
-            icon="fas fa-percentage"
-            disabled
+            title="Mutual Fund" 
+            icon="fas fa-chart-pie" 
+            iconColor="#8b5cf6"
+            path="/mutual-fund-calculator"
+          />
+
+          <CalculatorCard 
+            title="SCSS Calculator" 
+            icon="fas fa-user-clock" 
+            iconColor="#0ea5e9"
+            path="/scss-calculator"
+          />
+          
+          <CalculatorCard 
+            title="APY Calculator" 
+            icon="fas fa-landmark" 
+            iconColor="#e11d48"
+            path="/apy-calculator"
           />
 
           <CalculatorCard 
             title="FD Calculator" 
-            description="Compute returns on your Fixed Deposits with compounding frequency options."
-            icon="fas fa-university"
-            disabled
+            icon="fas fa-university" 
+            iconColor="#f59e0b"
+            path="/fd-calculator"
+          />
+
+          <CalculatorCard 
+            title="RD Calculator" 
+            icon="fas fa-piggy-bank" 
+            iconColor="#ec4899"
+            path="/rd-calculator"
+          />
+
+           <CalculatorCard 
+            title="PPF Calculator" 
+            icon="fas fa-shield-alt" 
+            iconColor="#14b8a6"
+            path="/ppf-calculator"
+          />
+
+           <CalculatorCard 
+            title="Lumpsum Calculator" 
+            icon="fas fa-money-bill-wave" 
+            iconColor="#8b5cf6"
+            path="/lumpsum-calculator"
+          />
+
+          <CalculatorCard 
+            title="Simple Interest" 
+            icon="fas fa-percentage" 
+            iconColor="#f59e0b"
+            path="/simple-interest-calculator"
+          />
+
+          <CalculatorCard 
+            title="Compound Interest" 
+            icon="fas fa-sync-alt" 
+            iconColor="#6366f1"
+            path="/compound-interest-calculator"
+          />
+
+           <CalculatorCard 
+            title="SWP Calculator" 
+            icon="fas fa-hand-holding-usd" 
+            iconColor="#6366f1"
+            path="/swp-calculator"
+          />
+
+          <CalculatorCard 
+            title="GST Calculator" 
+            icon="fas fa-percentage" 
+            iconColor="#ef4444"
+            path="/gst-calculator"
           />
         </div>
       </div>
