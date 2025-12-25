@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -116,7 +115,7 @@ const Home: React.FC = () => {
             title="SIP Calculator" 
             description="Calculate the future value of your Systematic Investment Plans with projected returns."
             icon="fas fa-chart-line"
-            disabled
+            path="/sip-calculator"
           />
 
           <CalculatorCard 
