@@ -1,6 +1,27 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Mapping of paths to their dynamic import functions for prefetching
+const PREFETCH_MAP: Record<string, () => Promise<any>> = {
+  '/emi-calculator': () => import('./EMICalculator'),
+  '/sip-calculator': () => import('./SIPCalculator'),
+  '/mutual-fund-calculator': () => import('./MutualFundCalculator'),
+  '/income-tax-calculator': () => import('./IncomeTaxCalculator'),
+  '/loan-comparison': () => import('./LoanComparisonCalculator'),
+  '/loan-eligibility': () => import('./LoanEligibilityCalculator'),
+  '/lumpsum-calculator': () => import('./InvestmentCalculator'),
+  '/fd-calculator': () => import('./InvestmentCalculator'),
+  '/rd-calculator': () => import('./InvestmentCalculator'),
+  '/ppf-calculator': () => import('./InvestmentCalculator'),
+  '/swp-calculator': () => import('./SWPCalculator'),
+  '/scss-calculator': () => import('./SCSSCalculator'),
+  '/apy-calculator': () => import('./APYCalculator'),
+  '/gst-calculator': () => import('./GSTCalculator'),
+  '/simple-interest': () => import('./InterestCalculator'),
+  '/compound-interest': () => import('./InterestCalculator'),
+  '/simple-calculator': () => import('./SimpleCalculator'),
+};
 
 const CalculatorCard: React.FC<{ 
   title: string; 
@@ -12,11 +33,19 @@ const CalculatorCard: React.FC<{
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    // Prefetch component code on hover
+    if (path && PREFETCH_MAP[path]) {
+      PREFETCH_MAP[path]().catch(() => {}); // Silently fail if prefetch fails
+    }
+  };
+
   return (
     <div 
       className="calc-card"
       onClick={() => !disabled && path && navigate(path)}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
       style={{
         '--icon-color': iconColor,
@@ -79,6 +108,16 @@ const TOOLS = [
 ];
 
 const Home: React.FC = () => {
+  useEffect(() => {
+    // Eagerly prefetch the most popular tools on mount
+    const highPriorityPaths = ['/emi-calculator', '/sip-calculator', '/income-tax-calculator'];
+    highPriorityPaths.forEach(path => {
+      if (PREFETCH_MAP[path]) {
+        PREFETCH_MAP[path]().catch(() => {});
+      }
+    });
+  }, []);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
        <style>{`
