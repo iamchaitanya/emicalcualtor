@@ -2,107 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#3b82f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <link rel="canonical" href="https://smartemipro.app/" />
-
-    <!-- Preconnect to external origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-
-    <!-- Preload critical font file to fix FOIT and satisfy Lighthouse -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-
-    <!-- Default Meta Tags -->
     <title>Smart EMI Pro - Advanced Financial & Loan Calculators</title>
     <meta name="title" content="Smart EMI Pro - Advanced Financial & Loan Calculators">
     <meta name="description" content="Calculate EMI, SIP, Mutual Funds, Income Tax (FY 25-26), GST and more with Smart EMI Pro. Professional financial tools with interactive charts.">
-    
-    <script type="application/ld+json">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Smart EMI Pro","url":"https://smartemipro.app/","applicationCategory":"FinanceApplication","operatingSystem":"Web, iOS, Android"}</script>
+    <link rel="manifest" href="manifest.json">
+    <!-- Optimization: Subset FontAwesome to reduce unused CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    </noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <style>
+        :root{--primary:#3b82f6;--bg:#f8fafc;--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--white:#ffffff}
+        *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+        body{font-family:'Inter',system-ui,-apple-system,sans-serif;background-color:var(--bg);color:var(--text);margin:0;padding:0;line-height:1.5}
+        .container{max-width:1280px;margin:0 auto;padding:0 24px;width:100%}
+        .seo-section{margin-top:60px;padding:40px;background:white;border-radius:24px;border:1px solid #e2e8f0;line-height:1.7;color:#334155}
+        .seo-section h2{color:#1e293b;font-size:24px;font-weight:800;margin-bottom:20px}
+        .seo-section h3{color:#1e293b;font-size:18px;font-weight:700;margin-top:32px;margin-bottom:12px}
+        .formula-box{background:#f8fafc;padding:24px;border-radius:12px;border-left:4px solid var(--primary);font-family:'Inter',monospace;font-size:18px;font-weight:700;margin:24px 0;color:#1e293b;text-align:center;overflow-x:auto}
+        .calc-wrapper{background:var(--white);border-radius:24px;box-shadow:0 4px 6px -1px rgba(0,0,0,.05);display:flex;border:1px solid var(--border);overflow:hidden}
+        .calc-left{flex:1;padding:40px;min-width:0}
+        .calc-right{width:400px;padding:40px;background:#fcfdfe;border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;min-width:0}
+        .result-card{text-align:center;width:100%;background:white;padding:24px;border-radius:16px;border:1px solid var(--border);margin-bottom:24px}
+        .result-title{font-size:11px;color:var(--text-light);font-weight:700;text-transform:uppercase;margin-bottom:4px}
+        .result-amount{font-size:32px;font-weight:800;color:var(--text);letter-spacing:-.02em}
+        .stats-grid{width:100%;display:grid;gap:12px}
+        .stat-item{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+        .stat-label{font-size:13px;color:var(--text-light);font-weight:600}
+        .stat-value{font-size:14px;font-weight:700;color:var(--text)}
+        .toggle-group{display:flex;background:#f1f5f9;padding:4px;border-radius:10px}
+        .toggle-btn{padding:6px 14px;border:none;background:transparent;cursor:pointer;font-size:13px;font-weight:600;border-radius:8px;color:var(--text-light);transition:all .2s}
+        .toggle-btn.active{background:white;color:var(--primary);font-weight:700;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+        .action-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 24px;border-radius:14px;border:none;font-weight:800;font-size:14px;cursor:pointer;transition:all .25s}
+        .action-btn:hover{transform:translateY(-2px);filter:brightness(1.05)}
+        @media (max-width:900px){.calc-wrapper{flex-direction:column}.calc-right{width:100%;border-left:none;border-top:1px solid var(--border)}.seo-section{padding:24px 20px}.formula-box{font-size:15px}}
+    </style>
+    <script type="importmap">
     {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Smart EMI Pro",
-      "url": "https://smartemipro.app/",
-      "applicationCategory": "FinanceApplication",
-      "operatingSystem": "Web, iOS, Android"
+      "imports": {
+        "react": "https://esm.sh/react@^19.2.3",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+        "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
+        "recharts": "https://esm.sh/recharts@^3.6.0",
+        "xlsx": "https://esm.sh/xlsx@^0.18.5",
+        "jspdf": "https://esm.sh/jspdf@^3.0.4",
+        "jspdf-autotable": "https://esm.sh/jspdf-autotable@^5.0.2",
+        "vite": "https://esm.sh/vite@^7.3.0",
+        "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+        "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.0.0"
+      }
     }
     </script>
-
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Non-render-blocking FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
-
-    <!-- Non-render-blocking Google Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"></noscript>
-    
-    <style>
-        :root {
-            --primary: #3b82f6; --bg: #f8fafc; --text: #1e293b;
-            --text-light: #64748b; --border: #e2e8f0; --white: #ffffff;
-        }
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.5; }
-        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; }
-        
-        /* Global SEO/Explanation Styles */
-        .seo-section { margin-top: 60px; padding: 40px; background: white; border-radius: 24px; border: 1px solid #e2e8f0; line-height: 1.7; color: #334155; }
-        .seo-section h2 { color: #1e293b; font-size: 24px; font-weight: 800; margin-bottom: 20px; }
-        .seo-section h3 { color: #1e293b; font-size: 18px; font-weight: 700; margin-top: 32px; margin-bottom: 12px; }
-        .formula-box { background: #f8fafc; padding: 24px; border-radius: 12px; border-left: 4px solid var(--primary); font-family: 'Inter', monospace; font-size: 18px; font-weight: 700; margin: 24px 0; color: #1e293b; text-align: center; overflow-x: auto; }
-        
-        .calc-wrapper { background: var(--white); border-radius: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; border: 1px solid var(--border); overflow: hidden; }
-        .calc-left { flex: 1; padding: 40px; min-width: 0; }
-        .calc-right { width: 400px; padding: 40px; background: #fcfdfe; border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; min-width: 0; }
-        
-        .result-card { text-align: center; width: 100%; background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; }
-        .result-title { font-size: 11px; color: var(--text-light); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
-        .result-amount { font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
-        
-        .stats-grid { width: 100%; display: grid; gap: 12px; }
-        .stat-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
-        .stat-label { font-size: 13px; color: var(--text-light); font-weight: 600; }
-        .stat-value { font-size: 14px; font-weight: 700; color: var(--text); }
-
-        .toggle-group { display: flex; background: #f1f5f9; padding: 4px; border-radius: 10px; }
-        .toggle-btn { padding: 6px 14px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--text-light); transition: all 0.2s; }
-        .toggle-btn.active { background: white; color: var(--primary); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        .action-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 24px; border-radius: 14px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s; }
-        .action-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
-
-        @media (max-width: 900px) {
-            .calc-wrapper { flex-direction: column; }
-            .calc-right { width: 100%; border-left: none; border-top: 1px solid var(--border); }
-            .seo-section { padding: 24px 20px; }
-            .formula-box { font-size: 15px; }
-        }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
-    "recharts": "https://esm.sh/recharts@^3.6.0",
-    "xlsx": "https://esm.sh/xlsx@^0.18.5",
-    "jspdf": "https://esm.sh/jspdf@^3.0.4",
-    "jspdf-autotable": "https://esm.sh/jspdf-autotable@^5.0.2",
-    "vite": "https://esm.sh/vite@^7.3.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-    "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.0.0"
-  }
-}
-</script>
 </head>
 <body>
     <div id="root" style="min-height: 100vh;"></div>

@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({
             width: 32px; height: 32px; background: ${iconColor}; border-radius: 8px; 
             display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; flex-shrink: 0;
         }
-        .title-text { font-size: 18px; font-weight: 800; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .title-text { font-size: 18px; font-weight: 800; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
         .actions-section { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         
         @media (max-width: 600px) {
@@ -70,15 +70,15 @@ const Layout: React.FC<LayoutProps> = ({
         }
       `}</style>
 
-      <div className="layout-header">
+      <header className="layout-header">
         <div className="container header-container">
-          <div className="logo-section" onClick={() => navigate('/')}>
+          <div className="logo-section" onClick={() => navigate('/')} role="link" aria-label="Go to Home">
             <div className="icon-box">
-              <i className={icon}></i>
+              <i className={icon} aria-hidden="true"></i>
             </div>
-            <span className="title-text">
+            <h1 className="title-text">
               {title} {titleHighlight && <span style={{ color: iconColor }}>{titleHighlight}</span>}
-            </span>
+            </h1>
           </div>
           
           <div className="actions-section">
@@ -86,6 +86,7 @@ const Layout: React.FC<LayoutProps> = ({
               <select 
                 value={currency} 
                 onChange={(e) => onCurrencyChange(e.target.value)}
+                aria-label="Select Currency"
                 style={{ 
                     padding: '6px 8px', borderRadius: '8px', border: '1px solid #e2e8f0', 
                     background: '#f8fafc', fontWeight: 600, fontSize: '12px', color: '#334155', cursor: 'pointer', outline: 'none' 
@@ -97,27 +98,28 @@ const Layout: React.FC<LayoutProps> = ({
             
             <button 
                 onClick={() => navigate('/')}
+                aria-label="Home"
                 style={{
                     width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #e2e8f0',
                     background: 'white', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px',
                 }}
             >
-                <i className="fas fa-home"></i>
+                <i className="fas fa-home" aria-hidden="true"></i>
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="container" style={{ flex: 1 }}>
+      <main className="container" style={{ flex: 1 }}>
         {children}
-      </div>
-      
+      </main>
+
       <footer style={{ marginTop: '60px', borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '40px 0' }}>
         <div className="container">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.8 }}>
                 <div style={{ width: '24px', height: '24px', background: '#3b82f6', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }}>
-                  <i className="fas fa-calculator"></i>
+                  <i className="fas fa-calculator" aria-hidden="true"></i>
                 </div>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Smart EMI Pro</span>
             </div>

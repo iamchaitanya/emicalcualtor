@@ -1,32 +1,32 @@
-
-import { GoogleGenAI } from "@google/genai";
 import { LoanDetails, EMIData } from "../types";
 
-// Fix: Upgraded model to gemini-3-pro-preview as financial analysis is a complex reasoning task requiring advanced insights
 export const getAIInsights = async (details: LoanDetails, emiData: EMIData, currencySymbol: string): Promise<string> => {
-  // Fix: Initializing GoogleGenAI with named parameter apiKey from process.env.API_KEY as per guidelines
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
-  const prompt = `
-    Act as a senior financial advisor. I have a loan with the following details:
-    - Principal Amount: ${currencySymbol}${details.principal.toLocaleString()}
-    - Annual Interest Rate: ${details.interestRate}%
-    - Total Duration: ${details.tenure} months
-    
-    The calculated Monthly EMI is ${currencySymbol}${emiData.emi.toFixed(2)}.
-    The Total Interest Payable is ${currencySymbol}${emiData.totalInterest.toFixed(2)}.
-    The Total Payment over time is ${currencySymbol}${emiData.totalPayment.toFixed(2)}.
-
-    Please provide:
-    1. A brief analysis of this loan structure.
-    2. 3 concrete strategies to reduce the total interest paid (e.g., specific prepayment targets or refinancing thresholds).
-    3. A risk assessment of this loan burden relative to typical debt-to-income benchmarks.
-    
-    Important: Use the ${currencySymbol} symbol in all your numerical examples.
-    Keep the tone professional, encouraging, and clear. Format the output with clear bullet points.
-  `;
-
   try {
+    // Optimization: Dynamic import to avoid including the SDK in the initial bundle
+    const { GoogleGenAI } = await import("@google/genai");
+    
+    // Fix: Initializing GoogleGenAI with named parameter apiKey from process.env.API_KEY as per guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const prompt = `
+      Act as a senior financial advisor. I have a loan with the following details:
+      - Principal Amount: ${currencySymbol}${details.principal.toLocaleString()}
+      - Annual Interest Rate: ${details.interestRate}%
+      - Total Duration: ${details.tenure} months
+      
+      The calculated Monthly EMI is ${currencySymbol}${emiData.emi.toFixed(2)}.
+      The Total Interest Payable is ${currencySymbol}${emiData.totalInterest.toFixed(2)}.
+      The Total Payment over time is ${currencySymbol}${emiData.totalPayment.toFixed(2)}.
+
+      Please provide:
+      1. A brief analysis of this loan structure.
+      2. 3 concrete strategies to reduce the total interest paid (e.g., specific prepayment targets or refinancing thresholds).
+      3. A risk assessment of this loan burden relative to typical debt-to-income benchmarks.
+      
+      Important: Use the ${currencySymbol} symbol in all your numerical examples.
+      Keep the tone professional, encouraging, and clear. Format the output with clear bullet points.
+    `;
+
     // Fix: Using generateContent with recommended model for complex reasoning and correct parameter structure
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
@@ -35,6 +35,7 @@ export const getAIInsights = async (details: LoanDetails, emiData: EMIData, curr
         temperature: 0.7,
       }
     });
+    
     // Fix: Accessing .text property directly from the response object as it is not a method
     return response.text || "No insights available at this time.";
   } catch (error) {

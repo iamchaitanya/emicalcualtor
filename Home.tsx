@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,7 +43,11 @@ const CalculatorCard: React.FC<{
   return (
     <div 
       className="calc-card"
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
       onClick={() => !disabled && path && navigate(path)}
+      onKeyDown={(e) => !disabled && path && e.key === 'Enter' && navigate(path)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -60,7 +63,7 @@ const CalculatorCard: React.FC<{
       <div className="calc-card-blob" style={{
           background: iconColor,
           opacity: isHovered ? 0.06 : 0.02,
-      }} />
+      }} aria-hidden="true" />
 
       <div className="calc-card-icon" style={{
         background: disabled ? '#f1f5f9' : `linear-gradient(135deg, ${iconColor}10 0%, ${iconColor}25 100%)`,
@@ -68,11 +71,11 @@ const CalculatorCard: React.FC<{
         boxShadow: isHovered ? `0 10px 15px -3px ${iconColor}25` : 'none',
         transform: isHovered && !disabled ? 'scale(1.1) rotate(-5deg)' : 'scale(1) rotate(0deg)',
       }}>
-        <i className={icon}></i>
+        <i className={icon} aria-hidden="true"></i>
       </div>
       
       <div className="calc-card-content">
-        <h3>{title}</h3>
+        <h2>{title}</h2>
       </div>
     </div>
   );
@@ -128,7 +131,7 @@ const Home: React.FC = () => {
         .calc-card-blob { position: absolute; top: -20%; right: -20%; width: 120px; height: 120px; border-radius: 50%; filter: blur(40px); pointer-events: none; transition: all 0.5s ease; }
         .calc-card-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; transition: transform 0.3s ease; }
         .calc-card-content { z-index: 1; flex: 1; }
-        .calc-card-content h3 { margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: -0.01em; line-height: 1.3; }
+        .calc-card-content h2 { margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: -0.01em; line-height: 1.3; }
         .home-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0 auto; }
         
         @media (min-width: 600px) {
@@ -136,27 +139,38 @@ const Home: React.FC = () => {
           .calc-card { flex-direction: column; align-items: center; text-align: center; padding: 20px; gap: 16px; min-height: 160px; border-radius: 20px; }
           .calc-card-blob { width: 160px; height: 160px; }
           .calc-card-icon { width: 48px; height: 48px; border-radius: 14px; font-size: 20px; }
-          .calc-card-content h3 { font-size: 15px; }
+          .calc-card-content h2 { font-size: 15px; }
         }
         @media (min-width: 900px) { .home-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
         @media (min-width: 1200px) { .home-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; } }
         @media (min-width: 1400px) { .home-grid { grid-template-columns: repeat(5, 1fr); gap: 24px; } }
       `}</style>
-      <div style={{ flex: 1, padding: '24px 0' }}>
+      <main style={{ flex: 1, padding: '24px 0' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px', marginTop: '10px' }}>
+          <header style={{ textAlign: 'center', marginBottom: '40px', marginTop: '10px' }}>
             <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.03em' }}>
               Smart Financial <span style={{ color: '#3b82f6' }}>Calculators</span>
             </h1>
             <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '500px', margin: '0 auto' }}>Professional tools for loans, savings, and tax planning.</p>
-          </div>
+          </header>
           <div className="home-grid">
             {TOOLS.map((tool, index) => (
                 <CalculatorCard key={index} title={tool.title} icon={tool.icon} iconColor={tool.color} path={tool.path} />
             ))}
           </div>
         </div>
-      </div>
+      </main>
+      <footer style={{ borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '40px 0' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.8 }}>
+                <div style={{ width: '24px', height: '24px', background: '#3b82f6', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }}>
+                  <i className="fas fa-calculator" aria-hidden="true"></i>
+                </div>
+                <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Smart EMI Pro</span>
+            </div>
+            <span style={{ fontSize: '12px', color: '#94a3b8' }}>© {new Date().getFullYear()} Smart EMI Pro. High-performance financial suite.</span>
+        </div>
+      </footer>
     </div>
   );
 };
