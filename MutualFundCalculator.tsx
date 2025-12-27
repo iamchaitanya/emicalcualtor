@@ -15,13 +15,9 @@ const COLORS = ['#3b82f6', '#10b981'];
 const MutualFundCalculator: React.FC = () => {
   const [currency, setCurrency] = useState<string>(detectCurrencyFromLocale());
   const [mode, setMode] = useState<'sip' | 'lumpsum'>('sip');
-  
-  // Basic State
   const [amount, setAmount] = useState<number>(5000);
   const [rate, setRate] = useState<number>(12);
   const [years, setYears] = useState<number>(5);
-
-  // Advanced State
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [stepUpRate, setStepUpRate] = useState<number>(0);
   const [adjustInflation, setAdjustInflation] = useState<boolean>(false);
@@ -29,311 +25,94 @@ const MutualFundCalculator: React.FC = () => {
 
   const symbol = useMemo(() => getCurrencySymbol(currency), [currency]);
 
-  // Handle default amounts when switching modes to be user-friendly
-  const handleModeChange = (newMode: 'sip' | 'lumpsum') => {
-    setMode(newMode);
-    if (newMode === 'sip') {
-      setAmount(5000); // Default monthly
-    } else {
-      setAmount(50000); // Default lumpsum
-    }
-  };
-
   const result = useMemo(() => {
-    let rawResult;
-    
-    if (mode === 'sip') {
-      // calculateSIP supports stepUpRate as 4th argument
-      rawResult = calculateSIP(amount, rate, years, stepUpRate);
-    } else {
-      // LumpSum doesn't support stepUp (it's one time)
-      rawResult = calculateLumpSum(amount, rate, years);
-    }
-
-    // Apply Inflation Adjustment
+    let rawResult = mode === 'sip' ? calculateSIP(amount, rate, years, stepUpRate) : calculateLumpSum(amount, rate, years);
     if (adjustInflation) {
-      // Formula for Real Value: FV / (1 + inflation)^years
       const inflationFactor = Math.pow(1 + inflationRate / 100, years);
       const realTotalValue = rawResult.totalValue / inflationFactor;
-      
-      return {
-        investedAmount: rawResult.investedAmount,
-        estReturns: realTotalValue - rawResult.investedAmount,
-        totalValue: realTotalValue,
-        isInflationAdjusted: true
-      };
+      return { investedAmount: rawResult.investedAmount, estReturns: realTotalValue - rawResult.investedAmount, totalValue: realTotalValue, isInflationAdjusted: true };
     }
-
     return { ...rawResult, isInflationAdjusted: false };
   }, [mode, amount, rate, years, stepUpRate, adjustInflation, inflationRate]);
 
-  // Handle negative returns display for charts (if inflation > returns)
-  const chartData = useMemo(() => {
-    const returns = Math.max(0, result.estReturns);
-    return [
-      { name: 'Invested Amount', value: result.investedAmount },
-      { name: 'Est. Returns', value: returns }
-    ];
-  }, [result]);
+  const chartData = [{ name: 'Invested', value: result.investedAmount }, { name: 'Returns', value: Math.max(0, result.estReturns) }];
 
-  const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
     const RADIAN = Math.PI / 180;
-    const radius = outerRadius * 0.5;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    
-    if (percent < 0.05) return null;
+    const color = index === 0 ? 'white' : 'white';
 
-    return (
-      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" style={{ fontSize: '12px', fontWeight: 800, pointerEvents: 'none', textShadow: '0 0 2px rgba(0,0,0,0.5)' }}>
+    return percent > 0.05 ? (
+      <text x={x} y={y} fill={color} textAnchor="middle" dominantBaseline="central" style={{ fontSize: '13px', fontWeight: 800 }}>
         {`${(percent * 100).toFixed(0)}%`}
       </text>
-    );
+    ) : null;
   };
 
   return (
-    <Layout 
-      title="Mutual Fund" 
-      titleHighlight="Returns" 
-      icon="fas fa-chart-pie" 
-      iconColor="#8b5cf6"
-      currency={currency}
-      onCurrencyChange={setCurrency}
-    >
+    <Layout title="Mutual Fund" titleHighlight="Returns" icon="fas fa-chart-pie" iconColor="#8b5cf6" currency={currency} onCurrencyChange={setCurrency}>
+        <style>{`
+          .seo-section { margin-top: 60px; padding: 40px; background: white; border-radius: 24px; border: 1px solid #e2e8f0; line-height: 1.7; color: #334155; }
+          .seo-section h2 { color: #1e293b; font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+          .formula-box { background: #f5f3ff; padding: 20px; border-radius: 12px; border-left: 4px solid #8b5cf6; font-family: monospace; font-size: 16px; margin: 20px 0; }
+          .chart-container { height: 220px; width: 100%; min-height: 220px; }
+          @media (max-width: 600px) { .seo-section { padding: 24px 20px; } }
+        `}</style>
+
         <div className="calc-wrapper">
           <div className="calc-left">
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '32px' }}>
-              Investment Details
-            </h2>
-            
-            <div style={{ marginBottom: '32px' }}>
-                <div className="toggle-group" style={{ width: '100%', display: 'flex' }}>
-                    <button 
-                        className={`toggle-btn ${mode === 'sip' ? 'active' : ''}`} 
-                        onClick={() => handleModeChange('sip')}
-                        style={{ flex: 1, padding: '12px' }}
-                    >
-                        SIP
-                    </button>
-                    <button 
-                        className={`toggle-btn ${mode === 'lumpsum' ? 'active' : ''}`} 
-                        onClick={() => handleModeChange('lumpsum')}
-                        style={{ flex: 1, padding: '12px' }}
-                    >
-                        Lumpsum
-                    </button>
-                </div>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '32px' }}>Details</h2>
+            <div className="toggle-group" style={{ width: '100%', display: 'flex', marginBottom: '32px' }}>
+                <button className={`toggle-btn ${mode === 'sip' ? 'active' : ''}`} style={{ flex: 1, padding: '12px' }} onClick={() => setMode('sip')}>SIP</button>
+                <button className={`toggle-btn ${mode === 'lumpsum' ? 'active' : ''}`} style={{ flex: 1, padding: '12px' }} onClick={() => setMode('lumpsum')}>Lumpsum</button>
             </div>
-
-            <SliderInput 
-              label={mode === 'sip' ? "Monthly Investment" : "Total Investment"} 
-              value={amount} 
-              min={500} 
-              max={mode === 'sip' ? 100000 : 10000000} 
-              step={500} 
-              onChange={setAmount} 
-              prefix={symbol}
-            />
-
-            <SliderInput 
-              label="Expected Return Rate (p.a)" 
-              value={rate} 
-              min={1} 
-              max={30} 
-              step={0.1} 
-              onChange={setRate} 
-              suffix={<span className="unit-label">%</span>}
-            />
-
-            <SliderInput 
-              label="Time Period" 
-              value={years} 
-              min={1} 
-              max={40} 
-              step={1} 
-              onChange={setYears} 
-              suffix={<span className="unit-label">Years</span>}
-            />
-
-            {/* Advanced Section */}
-            <div style={{ marginTop: '32px' }}>
-               <button 
-                 onClick={() => setShowAdvanced(!showAdvanced)}
-                 style={{ 
-                   width: '100%',
-                   display: 'flex', 
-                   alignItems: 'center', 
-                   justifyContent: 'space-between', 
-                   background: showAdvanced ? '#f5f3ff' : '#f8fafc', 
-                   border: '1px solid #e2e8f0',
-                   padding: '16px 20px',
-                   borderRadius: showAdvanced ? '16px 16px 0 0' : '16px',
-                   cursor: 'pointer',
-                   transition: 'all 0.2s',
-                   outline: 'none'
-                 }}
-               >
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ 
-                        width: '36px', height: '36px', borderRadius: '10px', 
-                        background: '#8b5cf6', color: 'white', 
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '14px'
-                    }}>
-                        <i className="fas fa-sliders-h"></i>
-                    </div>
-                    <div style={{ textAlign: 'left' }}>
-                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', margin: 0 }}>Advanced Options</h3>
-                        <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0', fontWeight: 500 }}>
-                            {mode === 'sip' ? 'Step-up & Inflation' : 'Inflation Adjustment'}
-                        </p>
-                    </div>
-                 </div>
-                 
-                 <div style={{ 
-                    width: '32px', 
-                    height: '32px', 
-                    borderRadius: '50%', 
-                    background: 'white', 
-                    border: '1px solid #cbd5e1',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    color: '#64748b',
-                    fontSize: '12px',
-                    transition: 'transform 0.2s',
-                    transform: showAdvanced ? 'rotate(180deg)' : 'rotate(0deg)'
-                 }}>
-                    <i className="fas fa-chevron-down"></i>
-                 </div>
-               </button>
-               
-               {showAdvanced && (
-                 <div style={{ 
-                   background: '#f8fafc', 
-                   border: '1px solid #e2e8f0', 
-                   borderTop: 'none', 
-                   borderRadius: '0 0 16px 16px', 
-                   padding: '24px 20px',
-                   boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                 }}>
-                   
-                   {/* Step Up - Only for SIP */}
-                   {mode === 'sip' && (
-                       <div style={{ marginBottom: '28px' }}>
-                           <SliderInput 
-                              label="Annual Step-up (Increase)" 
-                              value={stepUpRate} 
-                              min={0} 
-                              max={50} 
-                              step={1} 
-                              onChange={setStepUpRate} 
-                              suffix={<span className="unit-label">%</span>}
-                            />
-                            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '-20px', marginBottom: '0' }}>
-                               Increase monthly investment by {stepUpRate}% every year.
-                            </p>
-                       </div>
-                   )}
-
-                   {/* Inflation Adjustment */}
-                   <div style={{ borderTop: mode === 'sip' ? '1px solid #e2e8f0' : 'none', paddingTop: mode === 'sip' ? '24px' : '0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                          <label style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>Adjust for Inflation</label>
-                          <div 
-                            onClick={() => setAdjustInflation(!adjustInflation)}
-                            style={{
-                                width: '48px', height: '26px', background: adjustInflation ? '#8b5cf6' : '#cbd5e1',
-                                borderRadius: '13px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s'
-                            }}
-                          >
-                              <div style={{
-                                  width: '20px', height: '20px', background: 'white', borderRadius: '50%',
-                                  position: 'absolute', top: '3px', left: adjustInflation ? '25px' : '3px',
-                                  transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                              }}></div>
-                          </div>
-                      </div>
-
-                      {adjustInflation && (
-                          <SliderInput 
-                            label="Inflation Rate" 
-                            value={inflationRate} 
-                            min={1} 
-                            max={15} 
-                            step={0.1} 
-                            onChange={setInflationRate} 
-                            suffix={<span className="unit-label">%</span>}
-                          />
-                      )}
-                      {adjustInflation && (
-                          <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '-20px', marginBottom: '0', fontWeight: 500 }}>
-                             Results show "Present Value" (purchasing power today).
-                          </p>
-                      )}
-                   </div>
-
-                 </div>
-               )}
-            </div>
-
-            <div style={{ marginTop: '32px', background: '#f5f3ff', padding: '20px', borderRadius: '12px', border: '1px solid #ddd6fe' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#5b21b6', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fas fa-info-circle"></i> Info
-              </h3>
-              <p style={{ fontSize: '13px', color: '#4c1d95', margin: 0, lineHeight: '1.5' }}>
-                {mode === 'sip' 
-                    ? "SIP allows you to invest small amounts regularly. Use Step-up to increase your investment annually as your income grows."
-                    : "Lumpsum is a one-time investment. Adjusting for inflation helps you understand the real value of your corpus in the future."
-                }
-              </p>
-            </div>
+            <SliderInput label={mode === 'sip' ? "Monthly" : "One-time"} value={amount} min={500} max={1000000} step={500} onChange={setAmount} prefix={symbol} />
+            <SliderInput label="Returns Rate" value={rate} min={1} max={30} step={0.1} onChange={setRate} suffix="%" />
+            <SliderInput label="Years" value={years} min={1} max={40} step={1} onChange={setYears} suffix="Y" />
           </div>
 
           <div className="calc-right">
              <div className="result-card">
-                <div className="result-title">
-                    {result.isInflationAdjusted ? 'Total Value (Inflation Adjusted)' : 'Total Value'}
-                </div>
-                <div className="result-amount" style={{ color: '#8b5cf6' }}>{formatCurrency(result.totalValue, currency)}</div>
+                <div className="result-title">{result.isInflationAdjusted ? 'Real Value (Adjusted)' : 'Total Value'}</div>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: '#8b5cf6' }}>{formatCurrency(result.totalValue, currency)}</div>
              </div>
-
              <div className="stats-grid">
-                <div className="stat-item">
-                  <span className="stat-label">Invested Amount</span>
-                  <span className="stat-value">{formatCurrency(result.investedAmount, currency)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Est. Returns {result.isInflationAdjusted ? '(Real)' : ''}</span>
-                  <span className="stat-value" style={{ color: result.estReturns >= 0 ? '#10b981' : '#ef4444' }}>
-                      {formatCurrency(result.estReturns, currency)}
-                  </span>
-                </div>
+                <div className="stat-item"><span className="stat-label">Invested</span><span className="stat-value">{formatCurrency(result.investedAmount, currency)}</span></div>
+                <div className="stat-item"><span className="stat-label">Returns</span><span className="stat-value" style={{ color: '#10b981' }}>{formatCurrency(result.estReturns, currency)}</span></div>
              </div>
-
-             <div style={{ width: '100%', height: '220px', marginTop: '24px' }}>
-                <ResponsiveContainer>
+             <div className="chart-container">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie 
-                      data={chartData} 
-                      cx="50%" 
-                      cy="50%" 
-                      outerRadius={80} 
-                      dataKey="value" 
-                      stroke="#f8fafc"
-                      strokeWidth={4}
-                      label={renderLabel}
-                      labelLine={false}
-                    >
+                    <Pie data={chartData} cx="50%" cy="50%" outerRadius={75} dataKey="value" stroke="#f8fafc" strokeWidth={4} label={renderPieLabel} labelLine={false}>
                       {chartData.map((_, index) => <Cell key={index} fill={COLORS[index]} />)}
                     </Pie>
                     <Tooltip formatter={(val: number) => formatCurrency(val, currency)} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                    <Legend verticalAlign="bottom" />
                   </PieChart>
                 </ResponsiveContainer>
              </div>
           </div>
         </div>
+
+        <section className="seo-section">
+          <h2>Choosing Between SIP and Lumpsum in Mutual Funds</h2>
+          <p>
+            Mutual funds allow you to grow your wealth by investing in a diversified portfolio of stocks or bonds. You can choose to invest via a <strong>Systematic Investment Plan (SIP)</strong> for regular savings or a <strong>Lumpsum</strong> for one-time investments.
+          </p>
+
+          <h3>Inflation Impact on Mutual Funds</h3>
+          <p>
+            A common mistake in financial planning is ignoring <strong>Inflation</strong>. If your fund returns 12% but inflation is 6%, your real wealth growth is only 6%. Our calculator helps you visualize the "Present Value" of your future corpus.
+          </p>
+          <div className="formula-box">Real Value = Future Value / (1 + Inflation Rate)^Years</div>
+
+          <h3>Why Step-Up SIP is a Game Changer?</h3>
+          <p>
+            As your income increases, you should increase your SIP amount. A small 10% annual increase (Step-up) can lead to a 2x higher corpus compared to a flat SIP over 20 years.
+          </p>
+        </section>
     </Layout>
   );
 };

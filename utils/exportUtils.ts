@@ -1,10 +1,16 @@
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
 import { AmortizationMonth } from '../types';
 import { formatCurrency } from './calculations';
 
-export const downloadExcel = (data: AmortizationMonth[]) => {
+/**
+ * Optimized Export: Using dynamic imports to prevent heavy PDF/Excel 
+ * libraries from slowing down the initial page load.
+ */
+
+export const downloadExcel = async (data: AmortizationMonth[]) => {
+  // Dynamically import heavy library
+  const XLSX = await import('xlsx');
+  
   const worksheetData = data.map(row => ({
     Month: row.month,
     Principal: row.principalPaid,
@@ -19,7 +25,11 @@ export const downloadExcel = (data: AmortizationMonth[]) => {
   XLSX.writeFile(workbook, "smart-emi-schedule.xlsx");
 };
 
-export const downloadPDF = (data: AmortizationMonth[], loanAmount: number, rate: number, tenure: number, currency: string) => {
+export const downloadPDF = async (data: AmortizationMonth[], loanAmount: number, rate: number, tenure: number, currency: string) => {
+  // Dynamically import heavy libraries
+  const { jsPDF } = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
+  
   const doc = new jsPDF();
 
   // Title

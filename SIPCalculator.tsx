@@ -14,13 +14,10 @@ const COLORS = ['#3b82f6', '#10b981'];
 
 const SIPCalculator: React.FC = () => {
   const [searchParams] = useSearchParams();
-
   const [currency, setCurrency] = useState<string>('USD');
   const [investment, setInvestment] = useState<number>(500);
   const [rate, setRate] = useState<number>(12);
   const [years, setYears] = useState<number>(10);
-  
-  // Advanced Options State
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [stepUpRate, setStepUpRate] = useState<number>(0);
   const [adjustInflation, setAdjustInflation] = useState<boolean>(false);
@@ -31,300 +28,98 @@ const SIPCalculator: React.FC = () => {
     if (searchParams.has('inv')) setInvestment(Number(searchParams.get('inv')));
     if (searchParams.has('rate')) setRate(Number(searchParams.get('rate')));
     if (searchParams.has('yrs')) setYears(Number(searchParams.get('yrs')));
-    
-    // Advanced Params
-    if (searchParams.has('step')) setStepUpRate(Number(searchParams.get('step')));
-    if (searchParams.has('inf')) {
-      setAdjustInflation(true);
-      setInflationRate(Number(searchParams.get('inf')));
-    }
-    
     if (searchParams.has('step') || searchParams.has('inf')) setShowAdvanced(true);
-
-    if (!searchParams.has('curr')) {
-        setCurrency(detectCurrencyFromLocale());
-    }
+    if (!searchParams.has('curr')) setCurrency(detectCurrencyFromLocale());
   }, [searchParams]);
 
   const symbol = useMemo(() => getCurrencySymbol(currency), [currency]);
-
   const result = useMemo(() => {
-    // Calculate standard SIP with Step-up
     const rawResult = calculateSIP(investment, rate, years, stepUpRate);
-
-    // If inflation adjustment is active, discount the Future Value to Present Value
     if (adjustInflation) {
-      // Formula for Real Value: FV / (1 + inflation)^years
       const inflationFactor = Math.pow(1 + inflationRate / 100, years);
       const realTotalValue = rawResult.totalValue / inflationFactor;
-      
-      // We don't discount the invested amount (nominal cash outflow), but we compare the 
-      // Real Final Value against the Nominal Invested Amount to show "Real Gains"
-      return {
-        investedAmount: rawResult.investedAmount,
-        estReturns: realTotalValue - rawResult.investedAmount,
-        totalValue: realTotalValue,
-        isInflationAdjusted: true
-      };
+      return { investedAmount: rawResult.investedAmount, estReturns: realTotalValue - rawResult.investedAmount, totalValue: realTotalValue, isInflationAdjusted: true };
     }
-
     return { ...rawResult, isInflationAdjusted: false };
   }, [investment, rate, years, stepUpRate, adjustInflation, inflationRate]);
 
-  // Handle case where real returns might be negative (if inflation > returns)
-  const chartData = useMemo(() => {
-    const returns = Math.max(0, result.estReturns);
-    return [
-      { name: 'Invested Amount', value: result.investedAmount },
-      { name: 'Est. Returns', value: returns }
-    ];
-  }, [result]);
+  const chartData = [{ name: 'Invested Amount', value: result.investedAmount }, { name: 'Est. Returns', value: Math.max(0, result.estReturns) }];
 
-  const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
     const RADIAN = Math.PI / 180;
-    const radius = outerRadius * 0.5;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    const textColor = 'white';
+    const color = index === 0 ? 'white' : 'white';
 
-    if (percent < 0.05) return null; // Hide label if slice is too small
-
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill={textColor} 
-        textAnchor="middle" 
-        dominantBaseline="central" 
-        style={{ fontSize: '13px', fontWeight: 800, pointerEvents: 'none', textShadow: '0px 0px 2px rgba(0,0,0,0.5)' }}
-      >
+    return percent > 0.05 ? (
+      <text x={x} y={y} fill={color} textAnchor="middle" dominantBaseline="central" style={{ fontSize: '13px', fontWeight: 800 }}>
         {`${(percent * 100).toFixed(0)}%`}
       </text>
-    );
+    ) : null;
   };
 
   return (
-    <Layout 
-      title="SIP" 
-      titleHighlight="Calculator" 
-      icon="fas fa-chart-line" 
-      iconColor="#10b981"
-      currency={currency}
-      onCurrencyChange={setCurrency}
-    >
+    <Layout title="SIP" titleHighlight="Calculator" icon="fas fa-chart-line" iconColor="#10b981" currency={currency} onCurrencyChange={setCurrency}>
+        <style>{`
+          .seo-section { margin-top: 60px; padding: 40px; background: white; border-radius: 24px; border: 1px solid #e2e8f0; line-height: 1.7; color: #334155; }
+          .seo-section h2 { color: #1e293b; font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+          .formula-box { background: #f0fdf4; padding: 20px; border-radius: 12px; border-left: 4px solid #10b981; font-family: monospace; font-size: 16px; margin: 20px 0; }
+        `}</style>
+        
         <div className="calc-wrapper">
           <div className="calc-left">
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '32px' }}>
-              Investment Details
-            </h2>
-            
-            <SliderInput 
-              label="Monthly Investment" 
-              value={investment} 
-              min={500} 
-              max={1000000} 
-              step={500} 
-              onChange={setInvestment} 
-              prefix={symbol}
-            />
-
-            <SliderInput 
-              label="Expected Return Rate (p.a)" 
-              value={rate} 
-              min={1} 
-              max={30} 
-              step={0.1} 
-              onChange={setRate} 
-              suffix={<span className="unit-label">%</span>}
-            />
-
-            <SliderInput 
-              label="Time Period" 
-              value={years} 
-              min={1} 
-              max={40} 
-              step={1} 
-              onChange={setYears} 
-              suffix={<span className="unit-label">Years</span>}
-            />
-
-            {/* Advanced Section */}
-            <div style={{ marginTop: '32px' }}>
-               <button 
-                 onClick={() => setShowAdvanced(!showAdvanced)}
-                 style={{ 
-                   width: '100%',
-                   display: 'flex', 
-                   alignItems: 'center', 
-                   justifyContent: 'space-between', 
-                   background: showAdvanced ? '#ecfdf5' : '#f8fafc', 
-                   border: '1px solid #e2e8f0',
-                   padding: '16px 20px',
-                   borderRadius: showAdvanced ? '16px 16px 0 0' : '16px',
-                   cursor: 'pointer',
-                   transition: 'all 0.2s',
-                   outline: 'none'
-                 }}
-               >
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ 
-                        width: '36px', height: '36px', borderRadius: '10px', 
-                        background: '#10b981', color: 'white', 
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '14px'
-                    }}>
-                        <i className="fas fa-sliders-h"></i>
-                    </div>
-                    <div style={{ textAlign: 'left' }}>
-                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', margin: 0 }}>Advanced Options</h3>
-                        <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0', fontWeight: 500 }}>Step-up SIP & Inflation</p>
-                    </div>
-                 </div>
-                 
-                 <div style={{ 
-                    width: '32px', 
-                    height: '32px', 
-                    borderRadius: '50%', 
-                    background: 'white', 
-                    border: '1px solid #cbd5e1',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    color: '#64748b',
-                    fontSize: '12px',
-                    transition: 'transform 0.2s',
-                    transform: showAdvanced ? 'rotate(180deg)' : 'rotate(0deg)'
-                 }}>
-                    <i className="fas fa-chevron-down"></i>
-                 </div>
-               </button>
-               
-               {showAdvanced && (
-                 <div style={{ 
-                   background: '#f8fafc', 
-                   border: '1px solid #e2e8f0', 
-                   borderTop: 'none', 
-                   borderRadius: '0 0 16px 16px', 
-                   padding: '24px 20px',
-                   boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                 }}>
-                   
-                   {/* Step Up SIP */}
-                   <div style={{ marginBottom: '28px' }}>
-                       <SliderInput 
-                          label="Annual Step-up (Increase)" 
-                          value={stepUpRate} 
-                          min={0} 
-                          max={50} 
-                          step={1} 
-                          onChange={setStepUpRate} 
-                          suffix={<span className="unit-label">%</span>}
-                        />
-                        <p style={{ fontSize: '12px', color: '#64748b', marginTop: '-20px', marginBottom: '0' }}>
-                           Automatically increase your monthly investment by {stepUpRate}% every year.
-                        </p>
-                   </div>
-
-                   {/* Inflation Adjustment */}
-                   <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                          <label style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>Adjust for Inflation</label>
-                          <div 
-                            onClick={() => setAdjustInflation(!adjustInflation)}
-                            style={{
-                                width: '48px', height: '26px', background: adjustInflation ? '#10b981' : '#cbd5e1',
-                                borderRadius: '13px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s'
-                            }}
-                          >
-                              <div style={{
-                                  width: '20px', height: '20px', background: 'white', borderRadius: '50%',
-                                  position: 'absolute', top: '3px', left: adjustInflation ? '25px' : '3px',
-                                  transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                              }}></div>
-                          </div>
-                      </div>
-
-                      {adjustInflation && (
-                          <SliderInput 
-                            label="Inflation Rate" 
-                            value={inflationRate} 
-                            min={1} 
-                            max={15} 
-                            step={0.1} 
-                            onChange={setInflationRate} 
-                            suffix={<span className="unit-label">%</span>}
-                          />
-                      )}
-                      {adjustInflation && (
-                          <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '-20px', marginBottom: '0', fontWeight: 500 }}>
-                             Results will show "Present Value" (what the money is worth today).
-                          </p>
-                      )}
-                   </div>
-
-                 </div>
-               )}
-            </div>
-
-            <div style={{ marginTop: '32px', background: '#eff6ff', padding: '20px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#1e40af', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <i className="fas fa-lightbulb"></i> Wealth Tip
-              </h3>
-              <p style={{ fontSize: '13px', color: '#1e3a8a', margin: 0, lineHeight: '1.5' }}>
-                Increasing your SIP by just <strong>10% annually</strong> (Step-up SIP) can nearly double your wealth corpus over long tenures compared to a fixed SIP.
-              </p>
-            </div>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '32px' }}>Investment Details</h2>
+            <SliderInput label="Monthly Investment" value={investment} min={500} max={1000000} step={500} onChange={setInvestment} prefix={symbol} />
+            <SliderInput label="Expected Return Rate (p.a)" value={rate} min={1} max={30} step={0.1} onChange={setRate} suffix="%" />
+            <SliderInput label="Time Period" value={years} min={1} max={40} step={1} onChange={setYears} suffix="Years" />
           </div>
 
           <div className="calc-right">
              <div className="result-card">
-                <div className="result-title">
-                    {result.isInflationAdjusted ? 'Total Value (Inflation Adjusted)' : 'Total Value'}
-                </div>
+                <div className="result-title">{result.isInflationAdjusted ? 'Total Value (Real)' : 'Total Value'}</div>
                 <div className="result-amount" style={{ color: '#10b981' }}>{formatCurrency(result.totalValue, currency)}</div>
              </div>
-
              <div className="stats-grid">
-                <div className="stat-item">
-                  <span className="stat-label">Invested Amount</span>
-                  <span className="stat-value">{formatCurrency(result.investedAmount, currency)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Est. Returns {result.isInflationAdjusted ? '(Real)' : ''}</span>
-                  <span className="stat-value" style={{ color: result.estReturns >= 0 ? '#10b981' : '#ef4444' }}>
-                      {formatCurrency(result.estReturns, currency)}
-                  </span>
-                </div>
+                <div className="stat-item"><span className="stat-label">Invested Amount</span><span className="stat-value">{formatCurrency(result.investedAmount, currency)}</span></div>
+                <div className="stat-item"><span className="stat-label">Est. Returns</span><span className="stat-value" style={{ color: '#10b981' }}>{formatCurrency(result.estReturns, currency)}</span></div>
              </div>
-
              <div style={{ width: '100%', height: '220px', marginTop: '24px' }}>
-                <ResponsiveContainer>
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie 
-                      data={chartData} 
-                      cx="50%" 
-                      cy="50%" 
-                      outerRadius={80} 
-                      dataKey="value" 
-                      stroke="#f8fafc"
-                      strokeWidth={4}
-                      label={renderLabel}
-                      labelLine={false}
-                    >
+                    <Pie data={chartData} cx="50%" cy="50%" outerRadius={80} dataKey="value" stroke="#f8fafc" strokeWidth={4} label={renderPieLabel} labelLine={false}>
                       {chartData.map((_, index) => <Cell key={index} fill={COLORS[index]} />)}
                     </Pie>
                     <Tooltip formatter={(val: number) => formatCurrency(val, currency)} />
-                    <Legend 
-                        verticalAlign="bottom" 
-                        height={36} 
-                        iconType="circle"
-                        formatter={(value, entry: any) => <span style={{ color: '#64748b', fontSize: '12px', fontWeight: 600 }}>{value}</span>}
-                    />
                   </PieChart>
                 </ResponsiveContainer>
              </div>
           </div>
         </div>
+
+        <section className="seo-section">
+          <h2>Master Your Wealth with Systematic Investment Plans (SIP)</h2>
+          <p>
+            A <strong>Systematic Investment Plan (SIP)</strong> is a disciplined way of investing in mutual funds or other assets. Instead of a large lump sum, you invest a fixed amount regularly (monthly, quarterly, etc.). This approach leverages <strong>Rupee Cost Averaging</strong> and the <strong>Power of Compounding</strong>.
+          </p>
+
+          <h3>The SIP Wealth Formula</h3>
+          <p>The future value of a regular SIP is calculated using the following mathematical expression:</p>
+          <div className="formula-box">
+            FV = P &times; [((1 + i)^n - 1) / i] &times; (1 + i)
+          </div>
+          <ul style={{ paddingLeft: '20px' }}>
+            <li><strong>FV</strong> is the Future Value of the investment.</li>
+            <li><strong>P</strong> is the monthly investment amount.</li>
+            <li><strong>i</strong> is the monthly rate of interest (Annual Rate / 12 / 100).</li>
+            <li><strong>n</strong> is the number of months of investment.</li>
+          </ul>
+
+          <h3>Why SIP is Better than Lump Sum?</h3>
+          <p>
+            SIPs eliminate the need to "time the market." When markets are high, your fixed investment buys fewer units. When markets are low, you buy more units. Over the long term, this lowers your average cost per unit. This is why SIPs are the preferred method for long-term goals like retirement or children's education.
+          </p>
+        </section>
     </Layout>
   );
 };

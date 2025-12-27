@@ -1,32 +1,42 @@
 
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-console.log("App script starting...");
+// PWA Service Worker Registration
+// Simplified to prevent "Invalid URL" constructor errors in non-standard environments
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // We register using a relative path. The browser resolves this automatically.
+    // We wrap it in a try-catch to handle synchronous URL resolution errors if any.
+    try {
+      navigator.serviceWorker.register('./sw.js')
+        .then((registration) => {
+          console.log('Smart EMI Pro: SW registered', registration.scope);
+        })
+        .catch((err) => {
+          // Handles registration failures (e.g., origin mismatch in preview environments)
+          console.warn('Smart EMI Pro: SW registration failed or was blocked:', err.message);
+        });
+    } catch (e) {
+      console.warn('Smart EMI Pro: SW registration error:', e);
+    }
+  });
+}
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
 
-// Explicitly defining children in props to satisfy both TypeScript and React standard practices
 interface ErrorBoundaryProps {
   children?: ReactNode;
 }
 
-// Fix: Extending React.Component with explicit generics to ensure props and state are correctly inherited and recognized by TypeScript, resolving the issue where 'this.props' was not found
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly declare state with interface
   public state: ErrorBoundaryState = { hasError: false, error: null };
 
-  // Fix: Adding explicit constructor to ensure base class properties like 'this.props' are correctly inherited and recognized
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-  }
-
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    console.error("Derived state error:", error);
     return { hasError: true, error };
   }
 
@@ -35,7 +45,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render(): ReactNode {
-    // Fix: Accessing state safely after ensuring proper class initialization
     if (this.state.hasError) {
       return (
         <div style={{
@@ -47,17 +56,19 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          textAlign: 'center'
+          textAlign: 'center',
+          background: '#f8fafc'
         }}>
-          <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Something went wrong</h1>
+          <h1 style={{ fontSize: '24px', marginBottom: '16px', fontWeight: 800, color: '#1e293b' }}>Something went wrong</h1>
           <pre style={{ 
             background: '#fee2e2', 
             padding: '20px', 
-            borderRadius: '8px', 
-            maxWidth: '800px', 
+            borderRadius: '12px', 
+            maxWidth: '600px', 
             overflow: 'auto',
             fontSize: '14px',
-            color: '#991b1b' 
+            color: '#991b1b',
+            border: '1px solid #fecaca'
           }}>
             {this.state.error?.message || 'Unknown error'}
           </pre>
@@ -65,13 +76,14 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             onClick={() => window.location.reload()}
             style={{
               marginTop: '24px',
-              padding: '12px 24px',
+              padding: '12px 28px',
               background: '#3b82f6',
               color: 'white',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '12px',
               cursor: 'pointer',
-              fontWeight: 600
+              fontWeight: 700,
+              boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.3)'
             }}
           >
             Reload Application
@@ -79,7 +91,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         </div>
       );
     }
-    // Fix: Accessing children through this.props which is now guaranteed by React.Component inheritance and constructor
     return this.props.children || null;
   }
 }
@@ -87,20 +98,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 const container = document.getElementById('root');
 
 if (container) {
-  try {
-    const root = ReactDOM.createRoot(container);
-    root.render(
-      <React.StrictMode>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
-      </React.StrictMode>
-    );
-    console.log("React mount called");
-  } catch (e) {
-    console.error("Failed to mount React app:", e);
-    container.innerHTML = `<div style="color:red; padding:20px;">Failed to initialize app: ${e}</div>`;
-  }
-} else {
-  console.error("Root element not found");
+  const root = ReactDOM.createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>
+  );
 }

@@ -32,13 +32,20 @@ const Layout: React.FC<LayoutProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      background: '#f8fafc',
+      paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+    }}>
       <style>{`
         .layout-header {
             background: #fff;
             border-bottom: 1px solid #e2e8f0;
             margin-bottom: 32px;
-            padding: 12px 0;
+            padding-top: max(12px, env(safe-area-inset-top, 12px));
+            padding-bottom: 12px;
             width: 100%;
         }
         .header-container {
@@ -84,22 +91,17 @@ const Layout: React.FC<LayoutProps> = ({
         }
         
         @media (max-width: 600px) {
-            .layout-header { margin-bottom: 16px; padding: 10px 0; }
+            .layout-header { margin-bottom: 16px; }
             .title-text { font-size: 15px; }
             .header-container { gap: 8px; }
             .icon-box { width: 28px; height: 28px; font-size: 14px; }
         }
-        
-        @media (max-width: 380px) {
-            .title-text span { display: none; } /* Hide highlight on very small screens to save space */
-        }
       `}</style>
 
-      {/* Header */}
-      <div className="layout-header">
-        <div className="container header-container">
-          <div className="logo-section" onClick={() => navigate('/')}>
-            <div className="icon-box">
+      <header className="layout-header">
+        <nav className="container header-container" aria-label="Main Navigation">
+          <div className="logo-section" onClick={() => navigate('/')} role="link" aria-label="Go to Home">
+            <div className="icon-box" aria-hidden="true">
               <i className={icon}></i>
             </div>
             <span className="title-text">
@@ -112,6 +114,7 @@ const Layout: React.FC<LayoutProps> = ({
               <select 
                 value={currency} 
                 onChange={(e) => onCurrencyChange(e.target.value)}
+                aria-label="Select Currency"
                 style={{ 
                     padding: '6px 4px', 
                     borderRadius: '8px', 
@@ -130,6 +133,7 @@ const Layout: React.FC<LayoutProps> = ({
             
             <button 
                 onClick={() => navigate('/')}
+                aria-label="Back to Home"
                 style={{
                     width: '30px',
                     height: '30px',
@@ -144,23 +148,27 @@ const Layout: React.FC<LayoutProps> = ({
                     fontSize: '13px',
                 }}
             >
-                <i className="fas fa-home"></i>
+                <i className="fas fa-home" aria-hidden="true"></i>
             </button>
           </div>
-        </div>
-      </div>
+        </nav>
+      </header>
 
-      {/* Main Content */}
-      <div className="container" style={{ flex: 1 }}>
+      <main className="container" style={{ flex: 1, paddingBottom: 'env(safe-area-inset-bottom, 24px)' }}>
         {children}
-      </div>
+      </main>
       
-      {/* Footer */}
-      <div style={{ marginTop: '60px', borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '40px 0' }}>
+      <footer style={{ 
+        marginTop: '60px', 
+        borderTop: '1px solid #e2e8f0', 
+        background: '#ffffff', 
+        padding: '40px 0', 
+        paddingBottom: 'max(40px, env(safe-area-inset-bottom, 40px))' 
+      }}>
         <div className="container">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.8 }}>
-                <div style={{ width: '24px', height: '24px', background: '#3b82f6', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }}>
+                <div style={{ width: '24px', height: '24px', background: '#3b82f6', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }} aria-hidden="true">
                   <i className="fas fa-calculator"></i>
                 </div>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Smart EMI Pro</span>
@@ -168,7 +176,7 @@ const Layout: React.FC<LayoutProps> = ({
             <span style={{ fontSize: '12px', color: '#94a3b8' }}>© {new Date().getFullYear()} Smart EMI Pro. All rights reserved.</span>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };

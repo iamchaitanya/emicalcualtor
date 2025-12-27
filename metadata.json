@@ -1,5 +1,6 @@
 {
-  "name": "EMI Calculator",
-  "description": "A sophisticated loan and EMI calculator with interactive charts and detailed amortization schedules.",
+  "name": "Smart EMI Pro",
+  "short_name": "EMI Pro",
+  "description": "Professional suite of financial calculators including EMI, SIP, Tax, and GST with interactive charts and reports.",
   "requestFramePermissions": []
 }

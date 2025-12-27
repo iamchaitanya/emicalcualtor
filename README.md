@@ -1,20 +1,23 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
 
-# Run and deploy your AI Studio app
+# 🚀 Smart EMI Pro
 
-This contains everything you need to run your app locally.
+Professional suite of financial calculators built for the modern web.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1YabIcbzibXwHRwpG8J7B7VoogHs87KwZ
+## Features
+- **Comprehensive Tools**: EMI, SIP, Mutual Funds, Income Tax, and more.
+- **Interactive Visuals**: Real-time charts and amortization schedules.
+- **Export Options**: Download reports in PDF or Excel formats.
+- **PWA Support**: Installable on home screen with offline capabilities.
+- **Mobile Responsive**: Optimized for all screen sizes.
 
-## Run Locally
+## Getting Started
+1. Run `npm install` to install dependencies.
+2. Run `npm run dev` to start the development server.
+3. Build for production using `npm run build`.
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Technologies
+- React 18
+- TypeScript
+- Recharts (Data Visualization)
+- Vite (Build Tool)
+- Google Gemini API (AI Insights)

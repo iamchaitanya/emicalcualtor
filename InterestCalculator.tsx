@@ -28,109 +28,49 @@ const InterestCalculator: React.FC<Props> = ({ type }) => {
   const [principal, setPrincipal] = useState<number>(10000);
   const [rate, setRate] = useState<number>(5);
   const [years, setYears] = useState<number>(5);
-  const [frequency, setFrequency] = useState<number>(1); // Default to Annual for Compound
+  const [frequency, setFrequency] = useState<number>(1);
 
   const symbol = useMemo(() => getCurrencySymbol(currency), [currency]);
+  const result = useMemo(() => isCompound ? calculateGenericCompoundInterest(principal, rate, years, frequency) : calculateSimpleInterest(principal, rate, years), [type, principal, rate, years, frequency]);
 
-  const result = useMemo(() => {
-    if (isCompound) {
-      return calculateGenericCompoundInterest(principal, rate, years, frequency);
-    } else {
-      return calculateSimpleInterest(principal, rate, years);
-    }
-  }, [type, principal, rate, years, frequency]);
+  const chartData = [{ name: 'Principal', value: result.investedAmount }, { name: 'Interest', value: result.estReturns }];
 
-  const chartData = useMemo(() => [
-    { name: 'Principal Amount', value: result.investedAmount },
-    { name: 'Total Interest', value: result.estReturns }
-  ], [result]);
-
-  const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
     const RADIAN = Math.PI / 180;
-    const radius = outerRadius * 0.5;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    return (
-      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" style={{ fontSize: '12px', fontWeight: 800, pointerEvents: 'none', textShadow: '0 0 2px rgba(0,0,0,0.5)' }}>
+    const color = index === 0 ? 'white' : 'white';
+
+    return percent > 0.05 ? (
+      <text x={x} y={y} fill={color} textAnchor="middle" dominantBaseline="central" style={{ fontSize: '13px', fontWeight: 800 }}>
         {`${(percent * 100).toFixed(0)}%`}
       </text>
-    );
+    ) : null;
   };
 
   return (
-    <Layout 
-      title={config.title} 
-      titleHighlight="Calculator" 
-      icon={config.icon} 
-      iconColor={config.color}
-      currency={currency}
-      onCurrencyChange={setCurrency}
-    >
+    <Layout title={config.title} titleHighlight="Calculator" icon={config.icon} iconColor={config.color} currency={currency} onCurrencyChange={setCurrency}>
+        <style>{`
+          .seo-section { margin-top: 60px; padding: 40px; background: white; border-radius: 24px; border: 1px solid #e2e8f0; line-height: 1.7; color: #334155; }
+          .seo-section h2 { color: #1e293b; font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+          .formula-box { background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid ${config.color}; font-family: monospace; font-size: 16px; margin: 20px 0; }
+          .chart-container { height: 220px; min-height: 220px; }
+          @media (max-width: 600px) { .seo-section { padding: 24px 20px; } }
+        `}</style>
+
         <div className="calc-wrapper">
           <div className="calc-left">
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '32px' }}>
-              Details
-            </h2>
-            
-            <SliderInput 
-              label="Principal Amount" 
-              value={principal} 
-              min={1000} 
-              max={10000000} 
-              step={500} 
-              onChange={setPrincipal} 
-              prefix={symbol}
-            />
-
-            <SliderInput 
-              label="Interest Rate (p.a)" 
-              value={rate} 
-              min={1} 
-              max={30} 
-              step={0.1} 
-              onChange={setRate} 
-              suffix={<span className="unit-label">%</span>}
-            />
-
-            <SliderInput 
-              label="Time Period" 
-              value={years} 
-              min={1} 
-              max={30} 
-              step={1} 
-              onChange={setYears} 
-              suffix={<span className="unit-label">Years</span>}
-            />
-
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '32px' }}>Details</h2>
+            <SliderInput label="Principal" value={principal} min={1000} max={10000000} step={500} onChange={setPrincipal} prefix={symbol} />
+            <SliderInput label="Rate (%)" value={rate} min={1} max={30} step={0.1} onChange={setRate} suffix="%" />
+            <SliderInput label="Years" value={years} min={1} max={30} step={1} onChange={setYears} suffix="Y" />
             {isCompound && (
-               <div style={{ marginBottom: '28px' }}>
-                  <label style={{ display: 'block', fontWeight: 700, fontSize: '15px', color: '#1e293b', marginBottom: '16px' }}>
-                    Compounding Frequency
-                  </label>
+               <div style={{ marginTop: '24px' }}>
+                  <label style={{ fontWeight: 700, fontSize: '14px', marginBottom: '12px', display: 'block' }}>Compounding</label>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                     {[
-                       { label: 'Yearly', val: 1 },
-                       { label: 'Half-Yearly', val: 2 },
-                       { label: 'Quarterly', val: 4 },
-                       { label: 'Monthly', val: 12 }
-                     ].map((item) => (
-                       <button
-                         key={item.val}
-                         onClick={() => setFrequency(item.val)}
-                         style={{
-                           flex: 1,
-                           padding: '12px',
-                           borderRadius: '10px',
-                           border: frequency === item.val ? `2px solid ${config.color}` : '1px solid #e2e8f0',
-                           background: frequency === item.val ? '#f5f3ff' : 'white',
-                           color: frequency === item.val ? config.color : '#64748b',
-                           fontWeight: 700,
-                           cursor: 'pointer',
-                           fontSize: '13px'
-                         }}
-                       >
-                         {item.label}
-                       </button>
+                     {[{ label: 'Annual', val: 1 }, { label: 'Half-Yr', val: 2 }, { label: 'Quarter', val: 4 }, { label: 'Monthly', val: 12 }].map((item) => (
+                       <button key={item.val} onClick={() => setFrequency(item.val)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: frequency === item.val ? `2px solid ${config.color}` : '1px solid #e2e8f0', background: frequency === item.val ? '#f5f3ff' : 'white', fontWeight: 700, cursor: 'pointer', fontSize: '12px' }}>{item.label}</button>
                      ))}
                   </div>
                </div>
@@ -140,43 +80,42 @@ const InterestCalculator: React.FC<Props> = ({ type }) => {
           <div className="calc-right">
              <div className="result-card">
                 <div className="result-title">Total Amount</div>
-                <div className="result-amount" style={{ color: config.color }}>{formatCurrency(result.totalValue, currency)}</div>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: config.color }}>{formatCurrency(result.totalValue, currency)}</div>
              </div>
-
              <div className="stats-grid">
-                <div className="stat-item">
-                  <span className="stat-label">Principal Amount</span>
-                  <span className="stat-value">{formatCurrency(result.investedAmount, currency)}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Total Interest</span>
-                  <span className="stat-value" style={{ color: '#10b981' }}>{formatCurrency(result.estReturns, currency)}</span>
-                </div>
+                <div className="stat-item"><span className="stat-label">Principal</span><span className="stat-value">{formatCurrency(result.investedAmount, currency)}</span></div>
+                <div className="stat-item"><span className="stat-label">Interest</span><span className="stat-value" style={{ color: '#10b981' }}>{formatCurrency(result.estReturns, currency)}</span></div>
              </div>
-
-             <div style={{ width: '100%', height: '220px', marginTop: '24px' }}>
-                <ResponsiveContainer>
+             <div className="chart-container">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie 
-                      data={chartData} 
-                      cx="50%" 
-                      cy="50%" 
-                      outerRadius={80} 
-                      dataKey="value" 
-                      stroke="#f8fafc"
-                      strokeWidth={4}
-                      label={renderLabel}
-                      labelLine={false}
-                    >
+                    <Pie data={chartData} cx="50%" cy="50%" outerRadius={70} dataKey="value" stroke="#f8fafc" strokeWidth={4} label={renderPieLabel} labelLine={false}>
                       {chartData.map((_, index) => <Cell key={index} fill={COLORS[index]} />)}
                     </Pie>
                     <Tooltip formatter={(val: number) => formatCurrency(val, currency)} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                    <Legend verticalAlign="bottom" />
                   </PieChart>
                 </ResponsiveContainer>
              </div>
           </div>
         </div>
+
+        <section className="seo-section">
+          <h2>Simple vs. Compound Interest: What's the Difference?</h2>
+          <p>
+            The main difference lies in how interest is calculated. <strong>Simple Interest</strong> is based solely on the principal amount, while <strong>Compound Interest</strong> is calculated on the principal PLUS the accumulated interest of previous periods.
+          </p>
+
+          <h3>Simple Interest Formula</h3>
+          <div className="formula-box">SI = (P &times; R &times; T) / 100</div>
+          <p>This is commonly used in short-term personal loans or specific financial instruments.</p>
+
+          <h3>Compound Interest Formula</h3>
+          <div className="formula-box">A = P &times; (1 + r/n)^(n&times;t)</div>
+          <p>
+            Compound interest is the "Eighth Wonder of the World." The frequency of compounding (Monthly vs Annual) can significantly change the final outcome, as interest begins to earn interest more frequently.
+          </p>
+        </section>
     </Layout>
   );
 };
