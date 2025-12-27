@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 
 interface SliderInputProps {
@@ -17,11 +16,9 @@ const SliderInput: React.FC<SliderInputProps> = ({
 }) => {
   const locale = prefix === '₹' ? 'en-IN' : 'en-US';
   
-  // Local state to manage the input string directly while typing
   const [localInputValue, setLocalInputValue] = useState(value.toLocaleString(locale));
   const [isFocused, setIsFocused] = useState(false);
 
-  // Sync local input with prop value when not focused
   useEffect(() => {
     if (!isFocused) {
       setLocalInputValue(value.toLocaleString(locale));
@@ -29,12 +26,9 @@ const SliderInput: React.FC<SliderInputProps> = ({
   }, [value, isFocused, locale]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value;
-    
-    // Allow digits and a single decimal point
+    const rawValue = e.target.value.replace(/,/g, '');
     if (/^[0-9]*\.?[0-9]*$/.test(rawValue)) {
         setLocalInputValue(rawValue);
-        
         const numValue = Number(rawValue);
         if (!isNaN(numValue) && rawValue !== '') {
             onChange(numValue);
@@ -59,67 +53,99 @@ const SliderInput: React.FC<SliderInputProps> = ({
   };
 
   return (
-    <div style={{ marginBottom: '28px', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-        <label style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b', flex: '0 0 200px' }}>{label}</label>
+    <div style={{ marginBottom: '24px', width: '100%', boxSizing: 'border-box' }}>
+      <style>{`
+        .si-header {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-bottom: 12px;
+          width: 100%;
+        }
+        .si-label {
+          font-weight: 700;
+          font-size: 14px;
+          color: #1e293b;
+          line-height: 1.2;
+          display: block;
+        }
+        .si-input-wrap {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+        }
+        .si-field {
+          flex: 1;
+          min-width: 0;
+          padding: 10px 12px;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 16px;
+          text-align: right;
+          outline: none;
+          color: #1e293b;
+          background: #ffffff;
+          height: 44px;
+          box-sizing: border-box;
+          transition: border-color 0.2s;
+        }
+        .si-field:focus { border-color: #3b82f6; }
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '200px', justifyContent: 'flex-end' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <input
-              type="text"
-              value={isFocused ? localInputValue : value.toLocaleString(locale)}
-              onChange={handleInputChange}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '2px solid #e2e8f0',
-                borderRadius: '10px',
-                fontWeight: 700,
-                fontSize: '15px',
-                textAlign: 'right',
-                outline: 'none',
-                color: '#1e293b',
-                background: '#ffffff'
-              }}
-            />
-          </div>
+        @media (min-width: 600px) {
+          .si-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .si-field {
+            width: 140px;
+            flex: none;
+          }
+          .si-input-wrap {
+            width: auto;
+          }
+        }
+      `}</style>
 
+      <div className="si-header">
+        <label className="si-label">{label}</label>
+        <div className="si-input-wrap">
+          <input
+            type="text"
+            className="si-field"
+            value={isFocused ? localInputValue : value.toLocaleString(locale)}
+            onChange={handleInputChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          />
           {(prefix || suffix) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-              {prefix && (
-                <span style={{ 
-                  fontWeight: 700, 
-                  fontSize: '16px', 
-                  color: '#64748b' 
-                }}>
-                  {prefix}
-                </span>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+              {prefix && <span style={{ fontWeight: 700, fontSize: '13px', color: '#64748b' }}>{prefix}</span>}
               {suffix}
             </div>
           )}
         </div>
       </div>
       
-      <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center' }}>
+      <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
         <input
           type="range"
           min={min}
           max={max}
           step={step}
-          value={Math.min(max, value)} 
+          value={Math.min(max, Math.max(min, value))} 
           onChange={(e) => onChange(Number(e.target.value))}
-          style={bgStyle}
+          style={{ ...bgStyle, cursor: 'pointer', width: '100%', height: '6px', borderRadius: '3px', appearance: 'none', outline: 'none' }}
         />
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', padding: '0 2px' }}>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8' }}>
             {prefix}{min.toLocaleString(locale)}
         </span>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8' }}>
             {prefix}{max.toLocaleString(locale)}
         </span>
       </div>

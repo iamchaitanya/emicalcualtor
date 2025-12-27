@@ -1,26 +1,41 @@
 
-import React from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
 console.log("App script starting...");
 
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
-  constructor(props: any) {
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+// Explicitly defining children in props to satisfy both TypeScript and React standard practices
+interface ErrorBoundaryProps {
+  children?: ReactNode;
+}
+
+// Fix: Extending React.Component with explicit generics to ensure props and state are correctly inherited and recognized by TypeScript, resolving the issue where 'this.props' was not found
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare state with interface
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+
+  // Fix: Adding explicit constructor to ensure base class properties like 'this.props' are correctly inherited and recognized
+  constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     console.error("Derived state error:", error);
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error in component:", error, errorInfo);
   }
 
-  render() {
+  render(): ReactNode {
+    // Fix: Accessing state safely after ensuring proper class initialization
     if (this.state.hasError) {
       return (
         <div style={{
@@ -64,7 +79,8 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
         </div>
       );
     }
-    return this.props.children;
+    // Fix: Accessing children through this.props which is now guaranteed by React.Component inheritance and constructor
+    return this.props.children || null;
   }
 }
 

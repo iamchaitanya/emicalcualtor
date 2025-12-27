@@ -2,7 +2,9 @@
 import { GoogleGenAI } from "@google/genai";
 import { LoanDetails, EMIData } from "../types";
 
+// Fix: Upgraded model to gemini-3-pro-preview as financial analysis is a complex reasoning task requiring advanced insights
 export const getAIInsights = async (details: LoanDetails, emiData: EMIData, currencySymbol: string): Promise<string> => {
+  // Fix: Initializing GoogleGenAI with named parameter apiKey from process.env.API_KEY as per guidelines
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const prompt = `
@@ -25,13 +27,15 @@ export const getAIInsights = async (details: LoanDetails, emiData: EMIData, curr
   `;
 
   try {
+    // Fix: Using generateContent with recommended model for complex reasoning and correct parameter structure
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
       config: {
         temperature: 0.7,
       }
     });
+    // Fix: Accessing .text property directly from the response object as it is not a method
     return response.text || "No insights available at this time.";
   } catch (error) {
     console.error("Gemini Error:", error);

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { 
   calculateIncomeTax,
@@ -9,24 +10,34 @@ import SliderInput from './components/SliderInput';
 import Layout from './components/Layout';
 
 const IncomeTaxCalculator: React.FC = () => {
-  // Income Tax is India specific for this implementation
+  const [searchParams] = useSearchParams();
   const [currency] = useState<string>('INR');
   
-  // Inputs
   const [financialYear, setFinancialYear] = useState<'FY 2024-25' | 'FY 2025-26'>('FY 2024-25');
   const [income, setIncome] = useState<number>(1200000);
   const [ageGroup, setAgeGroup] = useState<'<60' | '60-80' | '>80'>('<60');
   
-  // Deductions
   const [ded80C, setDed80C] = useState<number>(150000);
   const [ded80D, setDed80D] = useState<number>(25000);
   const [hra, setHra] = useState<number>(0);
   const [homeLoanInterest, setHomeLoanInterest] = useState<number>(0);
   const [nps, setNps] = useState<number>(0);
-  const [other, setOther] = useState<number>(0);
   
   const [showDeductions, setShowDeductions] = useState<boolean>(true);
   const [breakdownView, setBreakdownView] = useState<'new' | 'old'>('new');
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
+
+  // Sync state from URL
+  useEffect(() => {
+    if (searchParams.has('fy')) setFinancialYear(searchParams.get('fy') as any);
+    if (searchParams.has('inc')) setIncome(Number(searchParams.get('inc')));
+    if (searchParams.has('age')) setAgeGroup(searchParams.get('age') as any);
+    if (searchParams.has('80c')) setDed80C(Number(searchParams.get('80c')));
+    if (searchParams.has('80d')) setDed80D(Number(searchParams.get('80d')));
+    if (searchParams.has('hra')) setHra(Number(searchParams.get('hra')));
+    if (searchParams.has('hli')) setHomeLoanInterest(Number(searchParams.get('hli')));
+    if (searchParams.has('nps')) setNps(Number(searchParams.get('nps')));
+  }, [searchParams]);
 
   const symbol = useMemo(() => getCurrencySymbol(currency), [currency]);
 
@@ -37,27 +48,38 @@ const IncomeTaxCalculator: React.FC = () => {
         hra: hra,
         homeLoanInterest: homeLoanInterest,
         nps: nps,
-        other: other
+        other: 0
     });
-  }, [income, ageGroup, financialYear, ded80C, ded80D, hra, homeLoanInterest, nps, other]);
+  }, [income, ageGroup, financialYear, ded80C, ded80D, hra, homeLoanInterest, nps]);
 
   const diff = result.oldRegime.tax - result.newRegime.tax;
   const isNewRegimeBetter = diff > 0;
   const savings = Math.abs(diff);
 
-  // Auto-switch breakdown view to the better regime initially if not user overridden? 
-  // For now let's keep it manual or simple logic
-  // React.useEffect(() => {
-  //     setBreakdownView(isNewRegimeBetter ? 'new' : 'old');
-  // }, [isNewRegimeBetter]); 
-  // Logic removed to prevent jitter while typing
-
   const chartData = [
-    { name: 'Old Regime', tax: result.oldRegime.tax, color: '#64748b' },
-    { name: 'New Regime', tax: result.newRegime.tax, color: '#3b82f6' }
+    { name: 'Old', tax: result.oldRegime.tax, color: '#64748b' },
+    { name: 'New', tax: result.newRegime.tax, color: '#3b82f6' }
   ];
 
   const activeBreakdown = breakdownView === 'new' ? result.newRegime : result.oldRegime;
+
+  const generateShareLink = () => {
+    const params = new URLSearchParams();
+    params.set('fy', financialYear);
+    params.set('inc', income.toString());
+    params.set('age', ageGroup);
+    params.set('80c', ded80C.toString());
+    params.set('80d', ded80D.toString());
+    params.set('hra', hra.toString());
+    params.set('hli', homeLoanInterest.toString());
+    params.set('nps', nps.toString());
+
+    const newUrl = `${window.location.origin}${window.location.pathname}#/income-tax-calculator?${params.toString()}`;
+    navigator.clipboard.writeText(newUrl).then(() => {
+      setShareLinkCopied(true);
+      setTimeout(() => setShareLinkCopied(false), 3000);
+    });
+  };
 
   return (
     <Layout 
@@ -67,29 +89,144 @@ const IncomeTaxCalculator: React.FC = () => {
       iconColor="#3b82f6"
       currency={currency}
     >
-        <div className="calc-wrapper">
-          <div className="calc-left">
-             {/* Section 1: Income Details */}
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '24px' }}>
-              Income Details
-            </h2>
+        <style>{`
+            .it-section-title { 
+                font-size: 11px; font-weight: 800; color: #94a3b8; 
+                text-transform: uppercase; letter-spacing: 0.1em; 
+                margin-bottom: 20px; display: block;
+                padding-left: 2px;
+            }
+            .it-label { 
+                font-size: 14px; font-weight: 700; color: #1e293b; 
+                display: block; margin-bottom: 8px; 
+            }
+            .it-chart-wrap { height: 240px; width: 100%; margin-top: 24px; }
             
-            <div style={{ marginBottom: '32px' }}>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: '15px', color: '#1e293b', marginBottom: '16px' }}>
-                   Financial Year
-                </label>
-                <div className="toggle-group" style={{ width: '100%', display: 'flex' }}>
+            .it-toggle-group {
+              display: flex;
+              flex-wrap: wrap; 
+              background: #f1f5f9;
+              padding: 4px;
+              border-radius: 12px;
+              width: 100%;
+              gap: 4px;
+              box-sizing: border-box;
+              margin-bottom: 24px;
+            }
+            .it-toggle-item {
+              flex: 1 1 auto; 
+              padding: 10px 8px;
+              border: none;
+              background: transparent;
+              cursor: pointer;
+              font-size: 13px;
+              font-weight: 700;
+              border-radius: 8px;
+              color: #64748b;
+              transition: all 0.2s;
+              text-align: center;
+              min-width: 0;
+            }
+            .it-toggle-item.active {
+              background: white;
+              color: #3b82f6;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+
+            .it-result-amount {
+                font-size: 28px;
+                font-weight: 800;
+                color: #3b82f6;
+                word-break: break-word;
+                line-height: 1.1;
+            }
+
+            .it-table-container {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 16px;
+                border: 1px solid #e2e8f0;
+                background: white;
+            }
+
+            .it-table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 320px; 
+            }
+
+            .it-th {
+                padding: 12px 10px;
+                text-align: left;
+                font-size: 10px;
+                font-weight: 700;
+                color: #94a3b8;
+                text-transform: uppercase;
+                background: #f8fafc;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .it-td {
+                padding: 12px 10px;
+                font-size: 13px;
+                border-bottom: 1px solid #f1f5f9;
+                color: #334155;
+            }
+
+            .it-share-btn {
+                margin-top: 20px;
+                width: 100%;
+                padding: 12px;
+                background: #f1f5f9;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                color: #475569;
+                font-weight: 700;
+                font-size: 13px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .summary-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px dashed #e2e8f0;
+                font-size: 13px;
+            }
+            .summary-row:last-child { border-bottom: none; font-weight: 800; color: #1e293b; font-size: 14px; }
+
+            @media (max-width: 600px) {
+                .it-toggle-item { font-size: 12px; padding: 10px 4px; }
+                .it-chart-wrap { height: 180px; }
+                .it-result-amount { font-size: 22px; }
+                .it-th, .it-td { padding: 10px 6px; font-size: 12px; }
+                .it-th:first-child, .it-td:first-child { padding-left: 10px; }
+                .it-th:last-child, .it-td:last-child { padding-right: 10px; }
+            }
+        `}</style>
+
+        <div className="calc-wrapper">
+          {/* Inputs Section */}
+          <div className="calc-left">
+            <span className="it-section-title">Tax Profile</span>
+            
+            <div style={{ marginBottom: '8px' }}>
+                <label className="it-label">Assessment Year</label>
+                <div className="it-toggle-group">
                     <button 
-                        className={`toggle-btn ${financialYear === 'FY 2024-25' ? 'active' : ''}`} 
+                        className={`it-toggle-item ${financialYear === 'FY 2024-25' ? 'active' : ''}`}
                         onClick={() => setFinancialYear('FY 2024-25')}
-                        style={{ flex: 1, padding: '12px' }}
                     >
                         FY 2024-25
                     </button>
                     <button 
-                        className={`toggle-btn ${financialYear === 'FY 2025-26' ? 'active' : ''}`} 
+                        className={`it-toggle-item ${financialYear === 'FY 2025-26' ? 'active' : ''}`}
                         onClick={() => setFinancialYear('FY 2025-26')}
-                        style={{ flex: 1, padding: '12px' }}
                     >
                         FY 2025-26
                     </button>
@@ -97,233 +234,169 @@ const IncomeTaxCalculator: React.FC = () => {
             </div>
             
             <SliderInput 
-              label="Gross Annual Income" 
+              label="Annual Salary" 
               value={income} 
               min={100000} 
-              max={5000000} 
+              max={10000000} 
               step={10000} 
               onChange={setIncome} 
               prefix={symbol}
             />
 
-            <div style={{ marginBottom: '32px' }}>
-                <label style={{ display: 'block', fontWeight: 700, fontSize: '15px', color: '#1e293b', marginBottom: '16px' }}>
-                   Age Group
-                </label>
-                <div className="toggle-group" style={{ width: '100%', display: 'flex' }}>
+            <div style={{ marginBottom: '8px' }}>
+                <label className="it-label">Age Category</label>
+                <div className="it-toggle-group">
                     <button 
-                        className={`toggle-btn ${ageGroup === '<60' ? 'active' : ''}`} 
+                        className={`it-toggle-item ${ageGroup === '<60' ? 'active' : ''}`}
                         onClick={() => setAgeGroup('<60')}
-                        style={{ flex: 1, padding: '12px' }}
                     >
                         &lt; 60
                     </button>
                     <button 
-                        className={`toggle-btn ${ageGroup === '60-80' ? 'active' : ''}`} 
+                        className={`it-toggle-item ${ageGroup === '60-80' ? 'active' : ''}`}
                         onClick={() => setAgeGroup('60-80')}
-                        style={{ flex: 1, padding: '12px' }}
                     >
-                        60 - 80
+                        60-80
                     </button>
                     <button 
-                        className={`toggle-btn ${ageGroup === '>80' ? 'active' : ''}`} 
+                        className={`it-toggle-item ${ageGroup === '>80' ? 'active' : ''}`}
                         onClick={() => setAgeGroup('>80')}
-                        style={{ flex: 1, padding: '12px' }}
                     >
                         &gt; 80
                     </button>
                 </div>
             </div>
 
-            {/* Section 2: Deductions */}
-            <div style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '32px' }}>
-               <div 
-                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: showDeductions ? '24px' : '0' }}
+            <div style={{ marginTop: '24px', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+               <button 
+                 style={{ 
+                   width: '100%', border: 'none', background: 'transparent', 
+                   display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                   cursor: 'pointer', padding: '8px 0', outline: 'none' 
+                 }}
                  onClick={() => setShowDeductions(!showDeductions)}
                >
-                 <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-                    Deductions (For Old Regime)
-                 </h2>
-                 <i className={`fas fa-chevron-${showDeductions ? 'up' : 'down'}`} style={{ color: '#94a3b8' }}></i>
-               </div>
+                 <span className="it-section-title" style={{ margin: 0 }}>Deductions (Old Regime)</span>
+                 <i className={`fas fa-chevron-${showDeductions ? 'up' : 'down'}`} style={{ color: '#94a3b8', fontSize: '14px' }}></i>
+               </button>
 
                {showDeductions && (
-                 <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                    <SliderInput 
-                        label="80C (LIC, PPF, ELSS)" 
-                        value={ded80C} 
-                        min={0} 
-                        max={150000} 
-                        step={1000} 
-                        onChange={setDed80C} 
-                        prefix={symbol}
-                    />
-                    <SliderInput 
-                        label="80D (Health Insurance)" 
-                        value={ded80D} 
-                        min={0} 
-                        max={100000} 
-                        step={1000} 
-                        onChange={setDed80D} 
-                        prefix={symbol}
-                    />
-                     <SliderInput 
-                        label="HRA Exemption" 
-                        value={hra} 
-                        min={0} 
-                        max={500000} 
-                        step={5000} 
-                        onChange={setHra} 
-                        prefix={symbol}
-                    />
-                     <SliderInput 
-                        label="Home Loan Interest (Sec 24b)" 
-                        value={homeLoanInterest} 
-                        min={0} 
-                        max={200000} 
-                        step={5000} 
-                        onChange={setHomeLoanInterest} 
-                        prefix={symbol}
-                    />
-                     <SliderInput 
-                        label="NPS (80CCD)" 
-                        value={nps} 
-                        min={0} 
-                        max={50000} 
-                        step={1000} 
-                        onChange={setNps} 
-                        prefix={symbol}
-                    />
+                 <div style={{ marginTop: '20px' }}>
+                    <SliderInput label="80C (LIC, PPF)" value={ded80C} min={0} max={150000} step={1000} onChange={setDed80C} prefix={symbol} />
+                    <SliderInput label="80D (Health)" value={ded80D} min={0} max={100000} step={1000} onChange={setDed80D} prefix={symbol} />
+                    <SliderInput label="HRA Exemption" value={hra} min={0} max={1000000} step={5000} onChange={setHra} prefix={symbol} />
+                    <SliderInput label="Home Loan Int" value={homeLoanInterest} min={0} max={200000} step={5000} onChange={setHomeLoanInterest} prefix={symbol} />
+                    <SliderInput label="NPS (80CCD)" value={nps} min={0} max={50000} step={1000} onChange={setNps} prefix={symbol} />
                  </div>
                )}
             </div>
           </div>
 
+          {/* Results Section */}
           <div className="calc-right">
-             <div className="result-card" style={{ borderColor: isNewRegimeBetter ? '#3b82f6' : '#64748b' }}>
-                <div className="result-title">Tax Payable ({isNewRegimeBetter ? 'New' : 'Old'} Regime)</div>
-                <div className="result-amount" style={{ color: isNewRegimeBetter ? '#3b82f6' : '#64748b' }}>
+             <div className="result-card">
+                <div className="result-title">
+                    Tax Payable ({isNewRegimeBetter ? 'New' : 'Old'})
+                </div>
+                <div className="it-result-amount" style={{ color: isNewRegimeBetter ? '#3b82f6' : '#64748b' }}>
                     {formatCurrency(isNewRegimeBetter ? result.newRegime.tax : result.oldRegime.tax, currency)}
                 </div>
-                <div style={{ marginTop: '12px', padding: '8px', background: isNewRegimeBetter ? '#eff6ff' : '#f1f5f9', borderRadius: '8px', color: isNewRegimeBetter ? '#1d4ed8' : '#475569', fontSize: '13px', fontWeight: 600 }}>
-                    {savings > 0 ? (
-                        <>You save <span style={{ fontWeight: 800 }}>{formatCurrency(savings, currency)}</span> with {isNewRegimeBetter ? 'New' : 'Old'} Regime!</>
-                    ) : (
-                        <>Tax liability is same under both regimes.</>
-                    )}
-                </div>
+                {savings > 0 && (
+                  <div style={{ marginTop: '12px', fontSize: '11px', fontWeight: 800, color: '#166534', background: '#f0fdf4', padding: '10px 8px', borderRadius: '12px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
+                    <i className="fas fa-check-circle"></i> NEW REGIME SAVES {formatCurrency(savings, currency)}
+                  </div>
+                )}
+                
+                <button onClick={generateShareLink} className="it-share-btn">
+                    {shareLinkCopied ? <><i className="fas fa-check"></i> Copied!</> : <><i className="fas fa-share-alt"></i> Share Calculation</>}
+                </button>
              </div>
 
              <div className="stats-grid">
                 <div className="stat-item">
-                  <span className="stat-label">Old Regime Tax</span>
-                  <span className="stat-value" style={{ color: '#64748b' }}>{formatCurrency(result.oldRegime.tax, currency)}</span>
+                  <span className="stat-label">Old Tax</span>
+                  <span className="stat-value">{formatCurrency(result.oldRegime.tax, currency)}</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-label">New Regime Tax</span>
+                  <span className="stat-label">New Tax</span>
                   <span className="stat-value" style={{ color: '#3b82f6' }}>{formatCurrency(result.newRegime.tax, currency)}</span>
                 </div>
              </div>
 
-             <div style={{ width: '100%', height: '220px', marginTop: '24px' }}>
-                <ResponsiveContainer>
-                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+             <div className="it-chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} dy={10} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 600, fill: '#64748b' }} dy={10} />
                     <YAxis hide />
-                    <Tooltip 
-                        cursor={{ fill: 'transparent' }}
-                        formatter={(val: number) => formatCurrency(val, currency)}
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                    />
-                    <Bar dataKey="tax" radius={[8, 8, 0, 0]} barSize={60}>
-                        {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
+                    <Tooltip cursor={{ fill: '#f1f5f9' }} formatter={(val: number) => formatCurrency(val, currency)} />
+                    <Bar dataKey="tax" radius={[6, 6, 0, 0]} barSize={32}>
+                        {chartData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
              </div>
-             
-             <div style={{ marginTop: '24px', background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px', color: '#64748b', lineHeight: '1.6' }}>
-                 <p style={{ margin: '0 0 8px 0' }}><strong>New Regime Highlights ({financialYear}):</strong></p>
-                 <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                     <li style={{ marginBottom: '4px' }}>
-                         {financialYear === 'FY 2025-26' 
-                            ? 'Rebate increased! Taxable income up to ₹12 Lakhs is tax-free.'
-                            : 'Taxable income up to ₹7 Lakhs is tax-free.'
-                         }
-                     </li>
-                     <li>Standard Deduction is ₹75,000.</li>
-                     <li>New Tax Slabs applied for {financialYear}.</li>
-                 </ul>
-             </div>
           </div>
         </div>
 
-        {/* Detailed Breakdown Section */}
-        <div style={{ marginTop: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '16px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b', margin: 0 }}>Tax Computation Breakdown</h3>
-                <div className="toggle-group" style={{ background: '#e2e8f0' }}>
-                    <button 
-                        className={`toggle-btn ${breakdownView === 'new' ? 'active' : ''}`} 
-                        onClick={() => setBreakdownView('new')}
-                        style={{ minWidth: '100px' }}
-                    >
-                        New Regime
-                    </button>
-                    <button 
-                        className={`toggle-btn ${breakdownView === 'old' ? 'active' : ''}`} 
-                        onClick={() => setBreakdownView('old')}
-                        style={{ minWidth: '100px' }}
-                    >
-                        Old Regime
-                    </button>
+        {/* Calculation Breakdown */}
+        <div style={{ marginTop: '48px', width: '100%', boxSizing: 'border-box' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b', marginBottom: '24px', paddingLeft: '2px' }}>Detailed Breakdown</h3>
+            
+            <div className="it-toggle-group" style={{ maxWidth: '280px', marginBottom: '24px' }}>
+                <button className={`it-toggle-item ${breakdownView === 'new' ? 'active' : ''}`} onClick={() => setBreakdownView('new')}>New Regime</button>
+                <button className={`it-toggle-item ${breakdownView === 'old' ? 'active' : ''}`} onClick={() => setBreakdownView('old')}>Old Regime</button>
+            </div>
+
+            {/* Income Summary Card */}
+            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+                <div className="summary-row">
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Gross Total Income</span>
+                    <span style={{ fontWeight: 700 }}>{formatCurrency(income, currency)}</span>
+                </div>
+                <div className="summary-row">
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Total Deductions & Exemptions</span>
+                    <span style={{ color: '#ef4444', fontWeight: 700 }}>- {formatCurrency(breakdownView === 'new' ? 75000 : result.oldRegime.totalDeductions || 0, currency)}</span>
+                </div>
+                <div className="summary-row">
+                    <span>Net Taxable Income</span>
+                    <span style={{ color: '#3b82f6' }}>{formatCurrency(activeBreakdown.taxableIncome, currency)}</span>
                 </div>
             </div>
 
-            <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+            <span className="it-section-title">Tax Computation Slabs</span>
+            <div className="it-table-container">
+                <table className="it-table">
                     <thead>
-                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                            <th style={{ padding: '16px', textAlign: 'left', fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Income Slab</th>
-                            <th style={{ padding: '16px', textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Tax Rate</th>
-                            <th style={{ padding: '16px', textAlign: 'right', fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Taxable Amount</th>
-                            <th style={{ padding: '16px', textAlign: 'right', fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Tax Calculated</th>
+                        <tr>
+                            <th className="it-th">Income Slab</th>
+                            <th className="it-th" style={{ textAlign: 'center' }}>Rate</th>
+                            <th className="it-th" style={{ textAlign: 'right' }}>Tax Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         {activeBreakdown.slabs.map((slab, idx) => (
-                            <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                <td style={{ padding: '16px', fontSize: '14px', fontWeight: 600, color: '#334155' }}>{slab.label}</td>
-                                <td style={{ padding: '16px', textAlign: 'center', fontSize: '14px', fontWeight: 600, color: '#64748b' }}>{slab.rate}</td>
-                                <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', fontWeight: 600, color: '#334155' }}>{formatCurrency(slab.taxableAmount, currency)}</td>
-                                <td style={{ padding: '16px', textAlign: 'right', fontSize: '14px', fontWeight: 700, color: '#3b82f6' }}>{formatCurrency(slab.amount, currency)}</td>
+                            <tr key={idx}>
+                                <td className="it-td" style={{ fontWeight: 600 }}>{slab.label}</td>
+                                <td className="it-td" style={{ textAlign: 'center', color: '#64748b' }}>{slab.rate}</td>
+                                <td className="it-td" style={{ textAlign: 'right', fontWeight: 700, color: '#3b82f6' }}>{formatCurrency(slab.amount, currency)}</td>
                             </tr>
                         ))}
-                        
-                        {/* Summary Rows */}
-                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                            <td colSpan={3} style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Total Computed Tax</td>
-                            <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '14px', fontWeight: 700, color: '#1e293b' }}>{formatCurrency(activeBreakdown.baseTax + activeBreakdown.rebate87A, currency)}</td>
-                        </tr>
-
                         {activeBreakdown.rebate87A > 0 && (
-                            <tr style={{ background: '#f0fdf4', borderBottom: '1px solid #f1f5f9' }}>
-                                <td colSpan={3} style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 600, color: '#166534' }}>Less: Rebate u/s 87A</td>
-                                <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '14px', fontWeight: 700, color: '#166534' }}>- {formatCurrency(activeBreakdown.rebate87A, currency)}</td>
+                            <tr>
+                                <td className="it-td" style={{ fontWeight: 600 }}>Rebate u/s 87A</td>
+                                <td className="it-td" style={{ textAlign: 'center' }}>-</td>
+                                <td className="it-td" style={{ textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>-{formatCurrency(activeBreakdown.rebate87A, currency)}</td>
                             </tr>
                         )}
-
-                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                            <td colSpan={3} style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Add: Health & Education Cess (4%)</td>
-                            <td style={{ padding: '12px 16px', textAlign: 'right', fontSize: '14px', fontWeight: 700, color: '#f59e0b' }}>{formatCurrency(activeBreakdown.cess, currency)}</td>
+                        <tr>
+                            <td className="it-td" style={{ fontWeight: 600 }}>Education Cess (4%)</td>
+                            <td className="it-td" style={{ textAlign: 'center' }}>-</td>
+                            <td className="it-td" style={{ textAlign: 'right', fontWeight: 700, color: '#334155' }}>{formatCurrency(activeBreakdown.cess, currency)}</td>
                         </tr>
-
                         <tr style={{ background: '#eff6ff' }}>
-                            <td colSpan={3} style={{ padding: '16px', textAlign: 'right', fontSize: '15px', fontWeight: 800, color: '#1e3a8a' }}>Total Tax Payable</td>
-                            <td style={{ padding: '16px', textAlign: 'right', fontSize: '18px', fontWeight: 800, color: '#1e3a8a' }}>{formatCurrency(activeBreakdown.tax, currency)}</td>
+                            <td colSpan={2} className="it-td" style={{ textAlign: 'right', fontSize: '13px', fontWeight: 800, color: '#1e3a8a', borderBottom: 'none' }}>Final Tax Liability</td>
+                            <td className="it-td" style={{ textAlign: 'right', fontSize: '16px', fontWeight: 800, color: '#1e3a8a', borderBottom: 'none' }}>{formatCurrency(activeBreakdown.tax, currency)}</td>
                         </tr>
                     </tbody>
                 </table>
