@@ -7,44 +7,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Canonical URL to prevent duplicate content issues -->
     <link rel="canonical" href="https://smartemipro.app/" />
 
-    <!-- Primary Meta Tags -->
+    <!-- Default Meta Tags -->
     <title>Smart EMI Pro - Advanced Financial & Loan Calculators</title>
     <meta name="title" content="Smart EMI Pro - Advanced Financial & Loan Calculators">
-    <meta name="description" content="Calculate EMI, SIP, Mutual Funds, Income Tax (FY 25-26), GST and more with Smart EMI Pro. Professional financial tools with interactive charts and export options.">
-    <meta name="keywords" content="EMI calculator, loan calculator, SIP calculator, tax calculator 2025, GST calculator, investment planner, financial tools">
-    <meta name="author" content="Smart EMI Pro">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://smartemipro.app/">
-    <meta property="og:title" content="Smart EMI Pro - Advanced Financial Calculators">
-    <meta property="og:description" content="Calculate loan EMIs, investment returns, and tax liabilities with professional accuracy. Free interactive financial tools.">
-    <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/2344/2344132.png">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="Smart EMI Pro - Advanced Financial Calculators">
-    <meta property="twitter:description" content="Free suite of professional financial calculators for loans, investments, and taxes.">
-
-    <!-- JSON-LD Structured Data for SEO -->
+    <meta name="description" content="Calculate EMI, SIP, Mutual Funds, Income Tax (FY 25-26), GST and more with Smart EMI Pro. Professional financial tools with interactive charts.">
+    
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "Smart EMI Pro",
-      "alternateName": "Smart EMI Calculator",
       "url": "https://smartemipro.app/",
-      "description": "Professional financial calculators for EMI, SIP, GST, and Income Tax.",
       "applicationCategory": "FinanceApplication",
-      "operatingSystem": "Web, iOS, Android",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      }
+      "operatingSystem": "Web, iOS, Android"
     }
     </script>
 
@@ -53,150 +30,44 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --bg: #f8fafc;
-            --text: #1e293b;
-            --text-light: #64748b;
-            --border: #e2e8f0;
-            --white: #ffffff;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --primary: #3b82f6; --bg: #f8fafc; --text: #1e293b;
+            --text-light: #64748b; --border: #e2e8f0; --white: #ffffff;
         }
-
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
-            overflow-x: hidden;
-        }
-
-        .container { 
-            max-width: 1280px; 
-            margin: 0 auto; 
-            padding: 0 24px; 
-            width: 100%; 
-        }
-
-        .calc-wrapper {
-            background: var(--white);
-            border-radius: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            display: flex;
-            border: 1px solid var(--border);
-            overflow: hidden;
-            min-width: 0;
-        }
-
-        .calc-left { 
-            flex: 1; 
-            padding: 40px; 
-            min-width: 0; /* Critical for ResponsiveContainer */
-        }
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.5; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; width: 100%; }
         
-        .calc-right { 
-            width: 400px; 
-            padding: 40px; 
-            background: #fcfdfe; 
-            border-left: 1px solid var(--border);
-            display: flex; 
-            flex-direction: column; 
-            flex-shrink: 0;
-            min-width: 0; /* Critical for ResponsiveContainer */
-        }
-
-        input[type=range] { 
-            width: 100%; 
-            -webkit-appearance: none; 
-            background: transparent; 
-            cursor: pointer; 
-            margin: 12px 0;
-            height: 6px;
-            border-radius: 3px;
-        }
+        /* Global SEO/Explanation Styles - Consolidated from components */
+        .seo-section { margin-top: 60px; padding: 40px; background: white; border-radius: 24px; border: 1px solid #e2e8f0; line-height: 1.7; color: #334155; }
+        .seo-section h2 { color: #1e293b; font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+        .seo-section h3 { color: #1e293b; font-size: 18px; font-weight: 700; margin-top: 32px; margin-bottom: 12px; }
+        .formula-box { background: #f8fafc; padding: 24px; border-radius: 12px; border-left: 4px solid var(--primary); font-family: 'Inter', monospace; font-size: 18px; font-weight: 700; margin: 24px 0; color: #1e293b; text-align: center; overflow-x: auto; }
         
-        input[type=range]::-webkit-slider-thumb { 
-            -webkit-appearance: none; 
-            height: 20px; 
-            width: 20px; 
-            border-radius: 50%; 
-            background: var(--primary); 
-            margin-top: -7px; 
-            border: 3px solid white; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
-            transition: transform 0.1s; 
-        }
-
-        .result-card { 
-            text-align: center; 
-            width: 100%; 
-            background: white; 
-            padding: 24px; 
-            border-radius: 16px; 
-            border: 1px solid var(--border);
-            margin-bottom: 24px;
-        }
+        .calc-wrapper { background: var(--white); border-radius: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; border: 1px solid var(--border); overflow: hidden; }
+        .calc-left { flex: 1; padding: 40px; min-width: 0; }
+        .calc-right { width: 400px; padding: 40px; background: #fcfdfe; border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; min-width: 0; }
         
-        .result-title { font-size: 11px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .result-card { text-align: center; width: 100%; background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; }
+        .result-title { font-size: 11px; color: var(--text-light); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
         .result-amount { font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
-
+        
         .stats-grid { width: 100%; display: grid; gap: 12px; }
         .stat-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
         .stat-label { font-size: 13px; color: var(--text-light); font-weight: 600; }
         .stat-value { font-size: 14px; font-weight: 700; color: var(--text); }
 
-        .toggle-group { display: flex; background: #f1f5f9; padding: 4px; border-radius: 10px; width: fit-content; }
-        .toggle-btn { padding: 6px 14px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--text-light); }
+        .toggle-group { display: flex; background: #f1f5f9; padding: 4px; border-radius: 10px; }
+        .toggle-btn { padding: 6px 14px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--text-light); transition: all 0.2s; }
         .toggle-btn.active { background: white; color: var(--primary); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-        /* Professional Action Buttons */
-        .action-btn {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 14px 24px;
-            border-radius: 14px;
-            border: none;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 10px -2px rgba(0,0,0,0.1);
-            white-space: nowrap;
-        }
-        .action-btn:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.05);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15);
-        }
-        .action-btn:active {
-            transform: translateY(0);
-        }
-        .action-btn i {
-            font-size: 18px;
-        }
-
-        /* Performance - Loading Spinner */
-        .loading-shimmer {
-            background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .action-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 24px; border-radius: 14px; border: none; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.25s; }
+        .action-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
 
         @media (max-width: 900px) {
             .calc-wrapper { flex-direction: column; }
-            .calc-left { padding: 24px 20px; }
-            .calc-right { width: 100%; border-left: none; border-top: 1px solid var(--border); padding: 24px 20px; }
-            .action-btn { width: 100%; flex: none; }
+            .calc-right { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+            .seo-section { padding: 24px 20px; }
+            .formula-box { font-size: 15px; }
         }
     </style>
 <script type="importmap">
