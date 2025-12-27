@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 
 interface SliderInputProps {
   label: string;
@@ -14,6 +14,8 @@ interface SliderInputProps {
 const SliderInput: React.FC<SliderInputProps> = ({ 
   label, value, min, max, step, onChange, prefix, suffix 
 }) => {
+  const inputId = useId();
+  const rangeId = useId();
   const locale = prefix === '₹' ? 'en-IN' : 'en-US';
   
   const [localInputValue, setLocalInputValue] = useState(value.toLocaleString(locale));
@@ -49,7 +51,7 @@ const SliderInput: React.FC<SliderInputProps> = ({
 
   const percentage = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
   const bgStyle = {
-    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`
+    background: `linear-gradient(to right, #2563eb 0%, #2563eb ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`
   };
 
   return (
@@ -68,6 +70,7 @@ const SliderInput: React.FC<SliderInputProps> = ({
           color: #1e293b;
           line-height: 1.2;
           display: block;
+          cursor: pointer;
         }
         .si-input-wrap {
           display: flex;
@@ -79,7 +82,7 @@ const SliderInput: React.FC<SliderInputProps> = ({
           flex: 1;
           min-width: 0;
           padding: 10px 12px;
-          border: 2px solid #e2e8f0;
+          border: 2px solid #cbd5e1;
           border-radius: 12px;
           font-weight: 700;
           font-size: 16px;
@@ -91,7 +94,7 @@ const SliderInput: React.FC<SliderInputProps> = ({
           box-sizing: border-box;
           transition: border-color 0.2s;
         }
-        .si-field:focus { border-color: #3b82f6; }
+        .si-field:focus { border-color: #2563eb; }
         
         @media (min-width: 600px) {
           .si-header {
@@ -110,19 +113,21 @@ const SliderInput: React.FC<SliderInputProps> = ({
       `}</style>
 
       <div className="si-header">
-        <label className="si-label">{label}</label>
+        <label htmlFor={inputId} className="si-label">{label}</label>
         <div className="si-input-wrap">
           <input
+            id={inputId}
             type="text"
             className="si-field"
             value={isFocused ? localInputValue : value.toLocaleString(locale)}
             onChange={handleInputChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
+            aria-label={`${label} numeric input`}
           />
           {(prefix || suffix) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-              {prefix && <span style={{ fontWeight: 700, fontSize: '13px', color: '#64748b' }}>{prefix}</span>}
+              {prefix && <span style={{ fontWeight: 700, fontSize: '13px', color: '#475569' }}>{prefix}</span>}
               {suffix}
             </div>
           )}
@@ -131,21 +136,23 @@ const SliderInput: React.FC<SliderInputProps> = ({
       
       <div style={{ position: 'relative', height: '24px', display: 'flex', alignItems: 'center', width: '100%', marginBottom: '4px' }}>
         <input
+          id={rangeId}
           type="range"
           min={min}
           max={max}
           step={step}
           value={Math.min(max, Math.max(min, value))} 
           onChange={(e) => onChange(Number(e.target.value))}
+          aria-label={`${label} range slider`}
           style={{ ...bgStyle, cursor: 'pointer', width: '100%', height: '6px', borderRadius: '3px', appearance: 'none', outline: 'none' }}
         />
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b' }}>
             {prefix}{min.toLocaleString(locale)}
         </span>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b' }}>
             {prefix}{max.toLocaleString(locale)}
         </span>
       </div>

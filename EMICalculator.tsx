@@ -13,7 +13,7 @@ import AmortizationSchedule from './components/AmortizationSchedule';
 import Layout from './components/Layout';
 import { CustomPrepayment } from './types';
 
-const COLORS = ['#3b82f6', '#cbd5e1'];
+const COLORS = ['#2563eb', '#94a3b8']; // Darker blue for contrast
 
 const EMICalculator: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -103,7 +103,7 @@ const EMICalculator: React.FC = () => {
       title="EMI" 
       titleHighlight="Calculator" 
       icon="fas fa-calculator" 
-      iconColor="#3b82f6" 
+      iconColor="#2563eb" 
       currency={currency} 
       onCurrencyChange={setCurrency}
       description="Professional EMI Calculator with amortization schedule, moratorium support, and interest-saving prepayment projections."
@@ -111,19 +111,19 @@ const EMICalculator: React.FC = () => {
         <style>{`
           .chart-container { height: 200px; width: 100%; position: relative; min-height: 200px; min-width: 0; }
           .action-hub { margin-top: 32px; padding: 32px; background: #fcfdfe; border-radius: 24px; border: 1px solid #e2e8f0; }
-          .action-hub-title { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+          .action-hub-title { font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
           .action-btn-row { display: flex; gap: 16px; flex-wrap: wrap; }
-          .advanced-toggle-btn { display: flex; align-items: center; gap: 12px; background: #eff6ff; color: #2563eb; border: 1px dashed #3b82f6; padding: 16px 24px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 32px; width: 100%; justify-content: center; transition: all 0.2s; font-size: 14px; }
+          .advanced-toggle-btn { display: flex; align-items: center; gap: 12px; background: #eff6ff; color: #1d4ed8; border: 1px dashed #2563eb; padding: 16px 24px; border-radius: 16px; font-weight: 800; cursor: pointer; margin-top: 32px; width: 100%; justify-content: center; transition: all 0.2s; font-size: 14px; }
           .advanced-panel { margin-top: 24px; padding: 32px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0; }
-          .advanced-section-title { font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; display: block; }
+          .advanced-section-title { font-size: 12px; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; display: block; }
           .custom-payment-row { display: grid; grid-template-columns: 140px 1fr 40px; gap: 12px; align-items: center; margin-bottom: 12px; }
-          .custom-input { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-weight: 700; font-size: 14px; outline: none; width: 100%; background: white; height: 44px; }
+          .custom-input { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-weight: 700; font-size: 14px; outline: none; width: 100%; background: white; height: 44px; }
           @media (max-width: 600px) { .stack-mobile { flex-direction: column !important; } .custom-payment-row { grid-template-columns: 1fr 1fr; } .custom-payment-row button { grid-column: span 2; } }
         `}</style>
 
         <div className="calc-wrapper">
           <div className="calc-left">
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '24px' }}>Loan Details</h2>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: '24px' }}>Loan Details</h2>
             <SliderInput label="Loan Amount" value={amount} min={1000} max={10000000} step={1000} onChange={setAmount} prefix={symbol} />
             <SliderInput label="Interest Rate" value={rate} min={0.1} max={30} step={0.1} onChange={setRate} suffix="%" />
             <SliderInput label="Tenure" value={tenure} min={1} max={tenureType === 'yr' ? 40 : 480} step={1} onChange={setTenure} 
@@ -166,7 +166,7 @@ const EMICalculator: React.FC = () => {
                         {customPayments.map((payment) => (
                             <div key={payment.id} className="custom-payment-row">
                                 <div>
-                                    <label style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Select Month</label>
+                                    <label style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>Select Month</label>
                                     <select 
                                       className="custom-input" 
                                       value={payment.month} 
@@ -178,16 +178,16 @@ const EMICalculator: React.FC = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Amount ({symbol})</label>
+                                    <label style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>Amount ({symbol})</label>
                                     <input type="number" className="custom-input" value={payment.amount} min={0} onChange={(e) => updateCustomPayment(payment.id, 'amount', Number(e.target.value))} />
                                 </div>
-                                <button onClick={() => removeCustomPayment(payment.id)} style={{ border: 'none', background: '#fee2e2', color: '#ef4444', width: '40px', height: '44px', borderRadius: '10px', cursor: 'pointer', marginTop: '16px' }}>
-                                    <i className="fas fa-trash"></i>
+                                <button onClick={() => removeCustomPayment(payment.id)} style={{ border: 'none', background: '#fee2e2', color: '#b91c1c', width: '40px', height: '44px', borderRadius: '10px', cursor: 'pointer', marginTop: '16px' }}>
+                                    <i className="fas fa-trash" aria-hidden="true"></i>
                                 </button>
                             </div>
                         ))}
-                        <button onClick={addCustomPayment} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px dashed #3b82f6', background: 'transparent', color: '#3b82f6', fontWeight: 700, cursor: 'pointer', marginTop: '8px' }}>
-                            <i className="fas fa-plus"></i> Add Prepayment
+                        <button onClick={addCustomPayment} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px dashed #2563eb', background: 'transparent', color: '#1d4ed8', fontWeight: 700, cursor: 'pointer', marginTop: '8px' }}>
+                            <i className="fas fa-plus" aria-hidden="true"></i> Add Prepayment
                         </button>
                     </div>
                   )}
@@ -199,11 +199,11 @@ const EMICalculator: React.FC = () => {
           <div className="calc-right">
              <div className="result-card">
                 <div className="result-title">Monthly EMI</div>
-                <div className="result-amount">{formatCurrency(emiResult.emi, currency)}</div>
+                <div className="result-amount" style={{ color: '#111827' }}>{formatCurrency(emiResult.emi, currency)}</div>
              </div>
              <div className="stats-grid">
                 <div className="stat-item"><span className="stat-label">Principal</span><span className="stat-value">{formatCurrency(amount, currency)}</span></div>
-                <div className="stat-item"><span className="stat-label">Total Interest</span><span className="stat-value" style={{ color: '#f59e0b' }}>{formatCurrency(emiResult.totalInterest, currency)}</span></div>
+                <div className="stat-item"><span className="stat-label">Total Interest</span><span className="stat-value" style={{ color: '#b45309' }}>{formatCurrency(emiResult.totalInterest, currency)}</span></div>
                 <div className="stat-item"><span className="stat-label">Total Payable</span><span className="stat-value">{formatCurrency(emiResult.totalPayment, currency)}</span></div>
              </div>
              <div className="chart-container">
@@ -222,9 +222,9 @@ const EMICalculator: React.FC = () => {
         <div className="action-hub">
           <div className="action-hub-title"><i className="fas fa-file-export"></i> Professional Reports</div>
           <div className="action-btn-row">
-            <button onClick={() => downloadExcel(emiResult.amortization)} className="action-btn" style={{ background: '#10b981', color: 'white' }}><i className="fas fa-file-excel"></i> Excel</button>
-            <button onClick={() => downloadPDF(emiResult.amortization, amount, rate, totalMonths, currency)} className="action-btn" style={{ background: '#ef4444', color: 'white' }}><i className="fas fa-file-pdf"></i> PDF</button>
-            <button onClick={generateShareLink} className="action-btn" style={{ background: '#3b82f6', color: 'white' }}>{shareLinkCopied ? 'Link Copied' : 'Share Tool'}</button>
+            <button onClick={() => downloadExcel(emiResult.amortization)} className="action-btn" style={{ background: '#059669', color: 'white' }}><i className="fas fa-file-excel"></i> Excel</button>
+            <button onClick={() => downloadPDF(emiResult.amortization, amount, rate, totalMonths, currency)} className="action-btn" style={{ background: '#dc2626', color: 'white' }}><i className="fas fa-file-pdf"></i> PDF</button>
+            <button onClick={generateShareLink} className="action-btn" style={{ background: '#2563eb', color: 'white' }}>{shareLinkCopied ? 'Link Copied' : 'Share Tool'}</button>
           </div>
         </div>
 

@@ -26,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({
   title, 
   titleHighlight, 
   icon, 
-  iconColor = '#3b82f6',
+  iconColor = '#2563eb', // Deeper blue for contrast
   currency,
   onCurrencyChange,
   description
@@ -72,12 +72,13 @@ const Layout: React.FC<LayoutProps> = ({
 
       <header className="layout-header">
         <div className="container header-container">
-          <div className="logo-section" onClick={() => navigate('/')} role="link" aria-label="Go to Home">
+          {/* Accessible Name fix: Match visible text with aria-label */}
+          <div className="logo-section" onClick={() => navigate('/')} role="link" aria-label={`Smart EMI Pro Home - ${title} ${titleHighlight || ''}`}>
             <div className="icon-box">
               <i className={icon} aria-hidden="true"></i>
             </div>
             <h1 className="title-text">
-              {title} {titleHighlight && <span style={{ color: iconColor }}>{titleHighlight}</span>}
+              {title} {titleHighlight && <span style={{ color: '#1d4ed8' }}>{titleHighlight}</span>}
             </h1>
           </div>
           
@@ -98,10 +99,10 @@ const Layout: React.FC<LayoutProps> = ({
             
             <button 
                 onClick={() => navigate('/')}
-                aria-label="Home"
+                aria-label="Back to Home"
                 style={{
                     width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #e2e8f0',
-                    background: 'white', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px',
+                    background: 'white', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px',
                 }}
             >
                 <i className="fas fa-home" aria-hidden="true"></i>
@@ -117,13 +118,13 @@ const Layout: React.FC<LayoutProps> = ({
       <footer style={{ marginTop: '60px', borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '40px 0' }}>
         <div className="container">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.8 }}>
-                <div style={{ width: '24px', height: '24px', background: '#3b82f6', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.9 }}>
+                <div style={{ width: '24px', height: '24px', background: '#2563eb', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }}>
                   <i className="fas fa-calculator" aria-hidden="true"></i>
                 </div>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Smart EMI Pro</span>
             </div>
-            <span style={{ fontSize: '12px', color: '#94a3b8' }}>© {new Date().getFullYear()} Smart EMI Pro. High-performance financial suite.</span>
+            <span style={{ fontSize: '12px', color: '#475569' }}>© {new Date().getFullYear()} Smart EMI Pro. High-performance financial suite.</span>
           </div>
         </div>
       </footer>
