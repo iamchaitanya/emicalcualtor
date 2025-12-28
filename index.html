@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,6 +15,25 @@
     <title>Smart EMI Pro - Advanced Financial & Loan Calculators</title>
     <meta name="title" content="Smart EMI Pro - Advanced Financial & Loan Calculators">
     <meta name="description" content="Calculate EMI, SIP, Mutual Funds, Income Tax (FY 25-26), GST and more with Smart EMI Pro. Professional financial tools with interactive charts.">
+    
+    <!-- Google Analytics Integration -->
+    <script>
+      const GA_ID = "process.env.GA_TRACKING_ID";
+      if (GA_ID && GA_ID !== "undefined" && GA_ID !== "") {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+        document.head.appendChild(script);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', GA_ID, {
+          send_page_view: false // We will handle this manually in React for SPAs
+        });
+      }
+    </script>
+
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Smart EMI Pro","url":"https://smartemipro.app/","applicationCategory":"FinanceApplication","operatingSystem":"Web, iOS, Android"}</script>
     <link rel="manifest" href="manifest.json">
     <!-- Optimization: Subset FontAwesome to reduce unused CSS -->

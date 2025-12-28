@@ -9,7 +9,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY || '')
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
+      'process.env.GA_TRACKING_ID': JSON.stringify(env.GA_TRACKING_ID || '')
     },
     build: {
       outDir: 'dist',
