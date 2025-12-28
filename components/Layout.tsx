@@ -89,6 +89,17 @@ const Layout: React.FC<LayoutProps> = ({
         .footer-link:hover {
           color: #2563eb;
         }
+        .layout-disclaimer {
+          max-width: 800px;
+          text-align: center;
+          font-size: 11px;
+          color: #94a3b8;
+          line-height: 1.6;
+          margin-top: 20px;
+          padding-top: 20px;
+          border-top: 1px solid #f1f5f9;
+          font-style: italic;
+        }
       `}</style>
 
       <header className="layout-header">
@@ -156,6 +167,10 @@ const Layout: React.FC<LayoutProps> = ({
                   <i className="fas fa-comment-alt"></i> Feedback
                 </button>
             </div>
+
+            <p className="layout-disclaimer">
+              Disclaimer: The calculations provided by Smart EMI Pro are for illustrative and informational purposes only. While we strive for absolute accuracy, actual financial values may vary based on bank policies, tax laws, and market fluctuations. These tools do not constitute financial or professional advice. Please consult with a qualified advisor before making any major financial decisions.
+            </p>
           </div>
         </div>
       </footer>
