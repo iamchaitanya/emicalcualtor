@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FeedbackModal from './FeedbackModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,6 +34,7 @@ const Layout: React.FC<LayoutProps> = ({
   description
 }) => {
   const navigate = useNavigate();
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // SEO: Dynamic Metadata Engine
   useEffect(() => {
@@ -68,11 +71,28 @@ const Layout: React.FC<LayoutProps> = ({
             .layout-header { margin-bottom: 16px; }
             .title-text { font-size: 16px; }
         }
+
+        .footer-link {
+          color: #475569;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 12px;
+          transition: color 0.2s;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .footer-link:hover {
+          color: #2563eb;
+        }
       `}</style>
 
       <header className="layout-header">
         <div className="container header-container">
-          {/* Accessible Name fix: Match visible text with aria-label */}
           <div className="logo-section" onClick={() => navigate('/')} role="link" aria-label={`Smart EMI Pro Home - ${title} ${titleHighlight || ''}`}>
             <div className="icon-box">
               <i className={icon} aria-hidden="true"></i>
@@ -115,6 +135,8 @@ const Layout: React.FC<LayoutProps> = ({
         {children}
       </main>
 
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+
       <footer style={{ marginTop: '60px', borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '40px 0' }}>
         <div className="container">
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
@@ -124,7 +146,16 @@ const Layout: React.FC<LayoutProps> = ({
                 </div>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Smart EMI Pro</span>
             </div>
-            <span style={{ fontSize: '12px', color: '#475569' }}>© {new Date().getFullYear()} Smart EMI Pro. High-performance financial suite.</span>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span style={{ fontSize: '12px', color: '#475569' }}>© {new Date().getFullYear()} Smart EMI Pro. High-performance financial suite.</span>
+                <button className="footer-link" onClick={() => navigate('/about')}>
+                  <i className="fas fa-info-circle"></i> About Us
+                </button>
+                <button className="footer-link" onClick={() => setIsFeedbackOpen(true)}>
+                  <i className="fas fa-comment-alt"></i> Feedback
+                </button>
+            </div>
           </div>
         </div>
       </footer>

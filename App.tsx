@@ -18,6 +18,7 @@ const SCSSCalculator = lazy(() => import('./SCSSCalculator'));
 const APYCalculator = lazy(() => import('./APYCalculator'));
 const MutualFundCalculator = lazy(() => import('./MutualFundCalculator'));
 const InterestCalculator = lazy(() => import('./InterestCalculator'));
+const AboutUs = lazy(() => import('./AboutUs'));
 
 const PageLoader = () => (
   <div style={{ 
@@ -66,6 +67,9 @@ const AppContent: React.FC = () => {
         <Route path="/income-tax-calculator" element={<IncomeTaxCalculator />} />
         <Route path="/gst-calculator" element={<GSTCalculator />} />
         <Route path="/simple-calculator" element={<SimpleCalculator />} />
+
+        {/* Informational Pages */}
+        <Route path="/about" element={<AboutUs />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -90,6 +90,13 @@
     </script>
 </head>
 <body>
+    <!-- Hidden form for Netlify Bot detection -->
+    <form name="feedback" data-netlify="true" hidden>
+      <input type="text" name="name" />
+      <input type="text" name="category" />
+      <textarea name="message"></textarea>
+    </form>
+
     <div id="root" style="min-height: 100vh;"></div>
     <script type="module" src="/index.tsx"></script>
 </body>

@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FeedbackModal from './components/FeedbackModal';
 
 // Mapping of paths to their dynamic import functions for prefetching
 const PREFETCH_MAP: Record<string, () => Promise<any>> = {
@@ -20,6 +22,7 @@ const PREFETCH_MAP: Record<string, () => Promise<any>> = {
   '/simple-interest': () => import('./InterestCalculator'),
   '/compound-interest': () => import('./InterestCalculator'),
   '/simple-calculator': () => import('./SimpleCalculator'),
+  '/about': () => import('./AboutUs'),
 };
 
 const CalculatorCard: React.FC<{ 
@@ -111,6 +114,9 @@ const TOOLS = [
 ];
 
 const Home: React.FC = () => {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Eagerly prefetch the most popular tools on mount
     const highPriorityPaths = ['/emi-calculator', '/sip-calculator', '/income-tax-calculator'];
@@ -144,14 +150,35 @@ const Home: React.FC = () => {
         @media (min-width: 900px) { .home-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
         @media (min-width: 1200px) { .home-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; } }
         @media (min-width: 1400px) { .home-grid { grid-template-columns: repeat(5, 1fr); gap: 24px; } }
+
+        .footer-link {
+          color: #64748b;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 12px;
+          transition: color 0.2s;
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .footer-link:hover {
+          color: #3b82f6;
+        }
       `}</style>
+
       <main style={{ flex: 1, padding: '24px 0' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
           <header style={{ textAlign: 'center', marginBottom: '40px', marginTop: '10px' }}>
             <h1 style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', letterSpacing: '-0.03em' }}>
               Smart Financial <span style={{ color: '#3b82f6' }}>Calculators</span>
             </h1>
-            <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '500px', margin: '0 auto' }}>Professional tools for loans, savings, and tax planning.</p>
+            <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '500px', margin: '0 auto', marginBottom: '24px' }}>
+              Professional tools for loans, savings, and tax planning.
+            </p>
           </header>
           <div className="home-grid">
             {TOOLS.map((tool, index) => (
@@ -160,6 +187,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+
       <footer style={{ borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '40px 0' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.8 }}>
@@ -168,7 +198,16 @@ const Home: React.FC = () => {
                 </div>
                 <span style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>Smart EMI Pro</span>
             </div>
-            <span style={{ fontSize: '12px', color: '#94a3b8' }}>© {new Date().getFullYear()} Smart EMI Pro. High-performance financial suite.</span>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>© {new Date().getFullYear()} Smart EMI Pro. High-performance financial suite.</span>
+                <button className="footer-link" onClick={() => navigate('/about')}>
+                  <i className="fas fa-info-circle"></i> About Us
+                </button>
+                <button className="footer-link" onClick={() => setIsFeedbackOpen(true)}>
+                  <i className="fas fa-comment-alt"></i> Feedback
+                </button>
+            </div>
         </div>
       </footer>
     </div>
