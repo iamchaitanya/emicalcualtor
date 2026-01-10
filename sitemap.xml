@@ -1,32 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://smartemipro.app/</loc>
-    <lastmod>2024-05-20</lastmod>
+    <loc>https://sipandemicalculator.com/</loc>
+    <lastmod>2026-01-10</lastmod>
     <priority>1.0</priority>
   </url>
+  
   <url>
-    <loc>https://smartemipro.app/#/emi-calculator</loc>
+    <loc>https://sipandemicalculator.com/#/emi-calculator</loc>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://smartemipro.app/#/sip-calculator</loc>
+    <loc>https://sipandemicalculator.com/#/sip-calculator</loc>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://smartemipro.app/#/income-tax-calculator</loc>
+    <loc>https://sipandemicalculator.com/#/income-tax-calculator</loc>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://smartemipro.app/#/gst-calculator</loc>
+    <loc>https://sipandemicalculator.com/#/mutual-fund-calculator</loc>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://sipandemicalculator.com/#/loan-comparison</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://smartemipro.app/#/loan-comparison</loc>
+    <loc>https://sipandemicalculator.com/#/loan-eligibility</loc>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://sipandemicalculator.com/#/lumpsum-calculator</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://smartemipro.app/#/mutual-fund-calculator</loc>
+    <loc>https://sipandemicalculator.com/#/fd-calculator</loc>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/rd-calculator</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/ppf-calculator</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/swp-calculator</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/scss-calculator</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/apy-calculator</loc>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://sipandemicalculator.com/#/gst-calculator</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/simple-interest</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/compound-interest</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/simple-calculator</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://sipandemicalculator.com/#/about</loc>
+    <priority>0.5</priority>
   </url>
 </urlset>
